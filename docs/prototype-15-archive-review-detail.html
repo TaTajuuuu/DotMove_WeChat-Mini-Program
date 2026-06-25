@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>一点运动 - 归档复盘详情页原型图</title><style>
+    :root { --page:#f6f7f3; --surface:#fff; --ink:#20251f; --muted:#687064; --quiet:#8a9384; --line:#dfe5d8; --brand:#2f7d4f; --brand-dark:#23613e; --accent:#f0b441; --danger:#ba5148; --shadow:0 16px 40px rgba(38,54,34,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:linear-gradient(180deg,rgba(47,125,79,.12),rgba(246,247,243,0) 260px),var(--page); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
+    h1,h2,h3,h4,p { margin:0; }
+    .board { width:min(1180px,calc(100vw - 32px)); margin:0 auto; padding:32px 0 48px; }
+    .board-title { display:flex; justify-content:space-between; gap:24px; align-items:flex-end; margin-bottom:24px; }
+    h1 { font-size:28px; line-height:1.25; letter-spacing:0; }
+    .meta { color:var(--muted); font-size:14px; line-height:1.6; text-align:right; }
+    .canvas { display:grid; grid-template-columns:420px 1fr; gap:28px; align-items:start; }
+    .phone { position:relative; width:390px; min-height:844px; margin:0 auto; overflow:hidden; border:10px solid #151815; border-radius:42px; background:var(--page); box-shadow:var(--shadow); }
+    .screen { min-height:824px; padding:0 18px 96px; background:radial-gradient(circle at 18% 6%,rgba(240,180,65,.22),transparent 150px),linear-gradient(180deg,rgba(47,125,79,.2),rgba(246,247,243,0) 260px),var(--page); }
+    .statusbar { display:flex; justify-content:space-between; align-items:center; height:40px; padding:0 8px; font-size:13px; font-weight:700; }
+    .signals { display:inline-flex; gap:5px; align-items:center; }
+    .dot { width:5px; height:5px; border-radius:50%; background:var(--ink); }
+    .nav { display:grid; grid-template-columns:40px 1fr 72px; align-items:center; height:48px; }
+    .nav h2 { font-size:18px; text-align:center; letter-spacing:0; }
+    .back { width:34px; height:34px; border:1px solid rgba(32,37,31,.14); border-radius:17px; background:rgba(255,255,255,.72); position:relative; }
+    .back::before { content:""; position:absolute; left:13px; top:10px; width:9px; height:9px; border-left:2px solid var(--ink); border-bottom:2px solid var(--ink); transform:rotate(45deg); }
+    .capsule { justify-self:end; display:flex; width:72px; height:32px; align-items:center; justify-content:space-around; border:1px solid rgba(32,37,31,.16); border-radius:18px; background:rgba(255,255,255,.76); }
+    .circle-icon,.more-icon { position:relative; width:18px; height:18px; }
+    .circle-icon { border:2px solid var(--ink); border-radius:50%; }
+    .more-icon::before,.more-icon::after,.more-icon span { content:""; position:absolute; top:8px; width:4px; height:4px; border-radius:50%; background:var(--ink); }
+    .more-icon::before { left:1px; } .more-icon span { left:7px; } .more-icon::after { left:13px; }
+    .hero { padding:18px 0 14px; }
+    .hero-title { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .hero h3 { font-size:28px; line-height:1.18; letter-spacing:0; }
+    .hero p { margin-top:8px; max-width:none; color:var(--muted); font-size:13px; line-height:1.55; white-space:nowrap; }
+    .badge,.tag { flex:0 0 auto; padding:7px 10px; border-radius:999px; font-size:12px; font-weight:800; line-height:1.2; }
+    .badge { border:1px solid rgba(47,125,79,.2); color:var(--brand-dark); background:rgba(255,255,255,.72); }
+    .tag.good { color:#fff; background:var(--brand); } .tag.soft { color:#5b420c; background:#fae6af; } .tag.mute { color:var(--muted); background:#e5e9df; }
+    .card,.panel { padding:14px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.92); box-shadow:0 8px 20px rgba(38,54,34,.06); }
+    .panel { margin-top:12px; }
+    .section-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px; }
+    .section-title { font-size:17px; font-weight:800; }
+    .section-meta { color:var(--quiet); font-size:12px; }
+    .goal-grid,.date-grid,.photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .goal-type,.date-card,.field,.photo-slot,.selected-item { padding:11px; border:1px solid var(--line); border-radius:8px; background:#fbfcf8; }
+    .goal-type { min-height:70px; }
+    .goal-type.selected,.date-card.selected { color:#fff; border-color:var(--brand); background:var(--brand); }
+    .goal-type strong,.date-card strong { display:block; font-size:14px; line-height:1.25; }
+    .goal-type span,.date-card span { display:block; margin-top:6px; color:currentColor; opacity:.74; font-size:11px; line-height:1.35; }
+    .field-list { display:grid; gap:10px; }
+    .field-row,.selected-item,.coin { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .field strong { font-size:14px; }
+    .field span { color:var(--brand-dark); font-size:16px; font-weight:900; white-space:nowrap; }
+    .field p { margin-top:6px; color:var(--muted); font-size:12px; line-height:1.4; }
+    .coin { min-height:50px; padding:0 13px; border:1px solid var(--line); border-radius:8px; background:#fbfcf8; font-weight:900; }
+    .coin small,.selected-item span { color:var(--quiet); font-size:12px; font-weight:600; }
+    .notice { margin-top:12px; padding:12px; border:1px solid rgba(240,180,65,.28); border-radius:8px; color:#6c4a06; background:rgba(255,246,225,.9); font-size:12px; line-height:1.45; }
+    .primary-btn { width:100%; min-height:50px; margin-top:14px; border:0; border-radius:8px; color:#fff; background:var(--brand); font:inherit; font-size:16px; font-weight:800; box-shadow:0 10px 24px rgba(47,125,79,.22); }
+    .secondary-link { display:block; margin-top:10px; color:var(--brand-dark); font-size:13px; font-weight:800; text-align:center; }
+    .photo-slot { min-height:72px; display:grid; place-items:center; color:var(--muted); font-size:12px; font-weight:800; text-align:center; }
+    .photo-slot.filled { color:#fff; background:linear-gradient(135deg,#2f7d4f,#f0b441); }
+    .toggle-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fbfcf8; }
+    .switch { width:46px; height:26px; border-radius:999px; background:var(--brand); position:relative; }
+    .switch::after { content:""; position:absolute; right:3px; top:3px; width:20px; height:20px; border-radius:50%; background:#fff; }
+    .bottom-bar { position:absolute; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:10px 18px 16px; border-top:1px solid rgba(223,229,216,.9); background:rgba(255,255,255,.92); backdrop-filter:blur(16px); }
+    .tab { display:grid; gap:4px; place-items:center; color:var(--quiet); font-size:11px; font-weight:700; }
+    .tab.current { color:var(--brand-dark); }
+    .tab-dot { width:22px; height:22px; border-radius:8px; background:currentColor; opacity:.25; }
+    .spec { padding:24px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.76); box-shadow:0 12px 32px rgba(38,54,34,.08); }
+    .spec h2 { margin:0 0 14px; font-size:20px; line-height:1.3; }
+    .spec-grid { display:grid; gap:14px; }
+    .spec-block { padding:14px; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+    .spec-block h3 { margin:0 0 8px; font-size:15px; line-height:1.3; }
+    .spec-block ul { margin:0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.7; }
+    .state-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .state-card { min-height:108px; padding:12px; border:1px dashed var(--line); border-radius:8px; background:#fbfcf8; }
+    .state-card strong { display:block; margin-bottom:6px; font-size:14px; }
+    .state-card p { color:var(--muted); font-size:12px; line-height:1.55; }
+    @media (max-width:900px) { .board { width:min(430px,calc(100vw - 20px)); padding:20px 0 32px; } .board-title { display:block; } .meta { margin-top:8px; text-align:left; } .canvas { grid-template-columns:1fr; } .phone { width:100%; max-width:390px; } .state-row { grid-template-columns:1fr; } }
+</style></head>
+<body><main class="board"><header class="board-title"><div><h1>一点运动微信打卡小程序：归档复盘详情页原型图</h1><p class="meta">依据：docs/00-project-principles.md、docs/01-prd.md、docs/02-spec.md</p></div><p class="meta">页面 15 · 归档复盘详情 · v1.0 MVP</p></header><section class="canvas" aria-label="一点运动微信打卡小程序：归档复盘详情页原型图"><div class="phone"><div class="screen"><div class="statusbar"><span>9:41</span><span class="signals" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div><nav class="nav" aria-label="微信小程序导航"><span class="back" aria-hidden="true"></span><h2>归档详情</h2><div class="capsule" aria-hidden="true"><span class="more-icon"><span></span></span><span class="circle-icon"></span></div></nav><section class="hero"><div class="hero-title"><div><h3>六月晨跑<br>归档复盘</h3><p>复盘结果只读，不随后续变化重算。</p></div><span class="badge">已归档</span></div></section><section class="card" aria-label="完成概览"><div class="section-head"><span class="section-title">完成概览</span><span class="tag good">67%</span></div><div class="date-grid"><div class="date-card selected"><strong>12 人</strong><span>完成月度目标</span></div><div class="date-card"><strong>6 人</strong><span>未完成目标</span></div></div><div class="notice" role="status">完成状态、完成日期和小组整体完成率已冻结。</div></section><section class="panel" aria-label="成员完成明细"><div class="section-head"><span class="section-title">成员完成明细</span><span class="section-meta">可点成员</span></div><div class="field-list"><div class="field"><div class="field-row"><strong>獭獭</strong><span>6.20 完成</span></div><p>月总最低热量、运动时长、运动天数均达成。</p></div><div class="field"><div class="field-row"><strong>小鹿</strong><span>6.22 完成</span></div><p>点击查看该成员归档目标完成详情。</p></div><div class="field"><div class="field-row"><strong>桃子</strong><span>未完成</span></div><p>运动次数差 3 次；归档后不再更新。</p></div></div></section></div></div><aside class="spec" aria-label="原型说明"><h2>页面定义</h2><div class="spec-grid"><section class="spec-block"><h3>归档复盘详情页承载的核心任务</h3><ul><li>展示已归档小组的完成概览、成员完成明细和目标进度。</li><li>点击成员进入该成员在组内的归档目标完成详情。</li><li>页面不提供提交、修改或新增入口。</li></ul></section><section class="spec-block"><h3>关键规则映射</h3><ul><li>归档页必须只读。</li><li>归档后不因成员关系、目标配置或打卡记录变化重新计算。</li><li>成员完成状态和完成日期使用冻结结果。</li></ul></section><section class="spec-block"><h3>页面状态草图</h3><div class="state-row"><div class="state-card"><strong>已归档</strong><p>展示冻结统计。</p></div><div class="state-card"><strong>成员详情</strong><p>点击成员查看个人完成情况。</p></div><div class="state-card"><strong>无权限</strong><p>非归档有效成员不可查看。</p></div></div></section></div></aside></section></main></body></html>

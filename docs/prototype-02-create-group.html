@@ -1,0 +1,772 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一点运动 - 创建小组页原型图</title>
+  <style>
+    :root {
+      --page: #f6f7f3;
+      --surface: #ffffff;
+      --surface-soft: #f0f4e8;
+      --ink: #20251f;
+      --muted: #687064;
+      --quiet: #8a9384;
+      --line: #dfe5d8;
+      --brand: #2f7d4f;
+      --brand-dark: #23613e;
+      --accent: #f0b441;
+      --danger: #ba5148;
+      --shadow: 0 16px 40px rgba(38, 54, 34, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(47, 125, 79, .12), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .board {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .board-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: right;
+    }
+
+    .canvas {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .phone {
+      position: relative;
+      width: 390px;
+      min-height: 844px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 10px solid #151815;
+      border-radius: 42px;
+      background: var(--page);
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      min-height: 824px;
+      padding: 0 18px 96px;
+      background:
+        radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .22), transparent 150px),
+        linear-gradient(180deg, rgba(47, 125, 79, .2), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .signals {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: 40px 1fr 72px;
+      align-items: center;
+      height: 48px;
+    }
+
+    .nav h2 {
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .back {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(32, 37, 31, .14);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, .72);
+      position: relative;
+    }
+
+    .back::before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 10px;
+      width: 9px;
+      height: 9px;
+      border-left: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      transform: rotate(45deg);
+    }
+
+    .capsule {
+      justify-self: end;
+      display: flex;
+      width: 72px;
+      height: 32px;
+      align-items: center;
+      justify-content: space-around;
+      border: 1px solid rgba(32, 37, 31, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .circle-icon,
+    .more-icon {
+      position: relative;
+      width: 18px;
+      height: 18px;
+    }
+
+    .circle-icon {
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .more-icon::before,
+    .more-icon::after,
+    .more-icon span {
+      content: "";
+      position: absolute;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .more-icon::before {
+      left: 1px;
+    }
+
+    .more-icon span {
+      left: 7px;
+    }
+
+    .more-icon::after {
+      left: 13px;
+    }
+
+    .hero {
+      padding: 18px 0 14px;
+    }
+
+    .hero-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .hero h3 {
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin-top: 8px;
+      max-width: 245px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .month-badge {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid rgba(47, 125, 79, .2);
+      border-radius: 999px;
+      color: var(--brand-dark);
+      background: rgba(255, 255, 255, .72);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .form-card,
+    .success-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 20px rgba(38, 54, 34, .06);
+    }
+
+    .form-card + .success-card {
+      margin-top: 12px;
+    }
+
+    .field-block + .field-block {
+      margin-top: 16px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 9px;
+    }
+
+    .label-row strong {
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .helper {
+      color: var(--quiet);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .period-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .period {
+      min-height: 112px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+    }
+
+    .period.active {
+      color: #fff;
+      border-color: var(--brand);
+      background: var(--brand);
+    }
+
+    .period .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .period h4 {
+      margin: 0 0 5px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .period p {
+      color: currentColor;
+      opacity: .78;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .radio {
+      width: 18px;
+      height: 18px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .active .radio::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .input {
+      display: flex;
+      align-items: center;
+      min-height: 50px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .input small {
+      margin-left: auto;
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .rule {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .rule i {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--brand);
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .notice {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid rgba(240, 180, 65, .28);
+      border-radius: 8px;
+      color: #6c4a06;
+      background: rgba(255, 246, 225, .9);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--brand);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(47, 125, 79, .22);
+    }
+
+    .success-card {
+      border-color: rgba(47, 125, 79, .2);
+      background: linear-gradient(180deg, rgba(240, 244, 232, .92), rgba(255, 255, 255, .92));
+    }
+
+    .success-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .success-head h4 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #fff;
+      background: var(--brand);
+    }
+
+    .invite-code {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px dashed rgba(47, 125, 79, .34);
+      border-radius: 8px;
+      color: var(--brand-dark);
+      background: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .ghost-btn {
+      min-height: 42px;
+      border: 1px solid rgba(47, 125, 79, .22);
+      border-radius: 8px;
+      color: var(--brand-dark);
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+
+    .bottom-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px 18px 16px;
+      border-top: 1px solid rgba(223, 229, 216, .9);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(16px);
+    }
+
+    .tab {
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      color: var(--quiet);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      color: var(--brand-dark);
+    }
+
+    .tab-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      background: currentColor;
+      opacity: .25;
+    }    .spec {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 12px 32px rgba(38, 54, 34, .08);
+    }
+
+    .spec h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .spec-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .spec-block {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .spec-block h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .spec-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .state-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .state-card {
+      min-height: 108px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+    }
+
+    .state-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .state-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        width: min(430px, calc(100vw - 20px));
+        padding: 20px 0 32px;
+      }
+
+      .board-title {
+        display: block;
+      }
+
+      .meta {
+        margin-top: 8px;
+        text-align: left;
+      }
+
+      .canvas {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+      position: relative;
+        width: 100%;
+        max-width: 390px;
+      }
+
+      .state-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-title">
+      <div>
+        <h1>一点运动微信打卡小程序：创建小组页原型图</h1>
+        <p class="meta">依据：docs/00-project-principles.md、docs/01-prd.md、docs/02-spec.md</p>
+      </div>
+      <p class="meta">页面 02 · 创建小组 · v1.0 MVP</p>
+    </header>
+
+    <section class="canvas" aria-label="创建小组页原型图">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="signals" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span>
+          </div>
+
+          <nav class="nav" aria-label="微信小程序导航">
+            <span class="back" aria-hidden="true"></span>
+            <h2>创建小组</h2>
+            <div class="capsule" aria-hidden="true">
+              <span class="more-icon"><span></span></span>
+              <span class="circle-icon"></span>
+            </div>
+          </nav>
+
+          <section class="hero">
+            <div class="hero-title">
+              <div>
+                <h3>发起一个<br>月度运动约定</h3>
+                <p>选择本月或下月，填写小组名称。</p>
+              </div>
+              <span class="month-badge">上限 50 人</span>
+            </div>
+          </section>
+
+          <section class="form-card" aria-label="创建小组表单">
+            <div class="field-block">
+              <div class="label-row">
+                <strong>创建周期</strong>
+                <span class="helper"></span>
+              </div>
+              <div class="period-grid">
+                <article class="period active">
+                  <div class="topline">
+                    <span>本月小组</span>
+                    <span class="radio" aria-hidden="true"></span>
+                  </div>
+                  <h4>2026.06</h4>
+                  <p>06.01 - 06.30<br>创建后立即进入进行中</p>
+                </article>
+                <article class="period">
+                  <div class="topline">
+                    <span>下月小组</span>
+                    <span class="radio" aria-hidden="true"></span>
+                  </div>
+                  <h4>2026.07</h4>
+                  <p>07.01 - 07.31<br>可先邀请和设置目标</p>
+                </article>
+              </div>
+            </div>
+
+            <div class="field-block">
+              <div class="label-row">
+                <strong>小组名称</strong>
+            <span class="helper">1-20 个字符</span>
+              </div>
+          <div class="input">六月晨跑 <small>4/20</small></div>
+            </div>
+
+            <div class="notice" role="status">
+              <span>下月小组开始前不可打卡，成员可设置昵称和目标。</span>
+            </div>
+
+            <button class="primary-btn">创建并生成邀请</button>
+          </section>
+
+          <section class="success-card" aria-label="创建成功状态">
+            <div class="success-head">
+              <div>
+                <h4>创建成功</h4>
+                <p class="helper">可复制邀请码，或直接分享到微信群。</p>
+              </div>
+              <span class="tag">进行中</span>
+            </div>
+            <div class="invite-code">YD-6K28</div>
+            <div class="secondary-actions">
+              <button class="ghost-btn">微信群分享</button>
+              <button class="ghost-btn">复制邀请码</button>
+            </div>
+          </section>
+          <footer class="bottom-bar" aria-label="底部导航">
+            <div class="tab active">
+              <span class="tab-dot"></span>
+              <span>小组</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>打卡</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>我的</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>回顾</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      <aside class="spec" aria-label="原型说明">
+        <h2>页面定义</h2>
+        <div class="spec-grid">
+          <section class="spec-block">
+            <h3>创建页承载的核心任务</h3>
+            <ul>
+              <li>选择创建本月小组或下月小组。</li>
+              <li>填写并校验小组名称。</li>
+              <li>创建成功后展示分享方式和邀请码。</li>
+              <li>让创建者理解生命周期、人数上限和打卡可用时机。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>关键规则映射</h3>
+            <ul>
+              <li>本月小组创建成功后为进行中。</li>
+              <li>下月小组创建成功后为未开始。</li>
+              <li>小组名称必填，长度 1 至 20 个字符。</li>
+              <li>创建者自动建立有效成员关系，并计入人数上限。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>操作路径</h3>
+            <ul>
+              <li>首页点击“创建小组”进入本页。</li>
+              <li>选择周期并填写名称后提交创建。</li>
+              <li>创建成功后可分享卡片或复制邀请码。</li>
+              <li>完成分享后进入小组详情页查看成员与目标状态。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>页面状态草图</h3>
+            <div class="state-row">
+              <div class="state-card">
+                <strong>名称为空</strong>
+                <p>阻止提交，提示“小组名称不能为空”。</p>
+              </div>
+              <div class="state-card">
+                <strong>创建中</strong>
+                <p>按钮进入加载状态，避免重复提交。</p>
+              </div>
+              <div class="state-card">
+                <strong>创建失败</strong>
+                <p>展示失败原因与重试入口，保留已填写内容。</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
+
+
+
+
+

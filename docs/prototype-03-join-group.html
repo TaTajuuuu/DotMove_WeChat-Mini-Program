@@ -1,0 +1,708 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一点运动 - 加入小组页原型图</title>
+  <style>
+    :root {
+      --page: #f6f7f3;
+      --surface: #ffffff;
+      --surface-soft: #f0f4e8;
+      --ink: #20251f;
+      --muted: #687064;
+      --quiet: #8a9384;
+      --line: #dfe5d8;
+      --brand: #2f7d4f;
+      --brand-dark: #23613e;
+      --accent: #f0b441;
+      --danger: #ba5148;
+      --shadow: 0 16px 40px rgba(38, 54, 34, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(47, 125, 79, .12), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    p {
+      margin: 0;
+    }
+
+    .board {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .board-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: right;
+    }
+
+    .canvas {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .phone {
+      position: relative;
+      width: 390px;
+      min-height: 844px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 10px solid #151815;
+      border-radius: 42px;
+      background: var(--page);
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      min-height: 824px;
+      padding: 0 18px 96px;
+      background:
+        radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .22), transparent 150px),
+        linear-gradient(180deg, rgba(47, 125, 79, .2), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .signals {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: 40px 1fr 72px;
+      align-items: center;
+      height: 48px;
+    }
+
+    .nav h2 {
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .back {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(32, 37, 31, .14);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, .72);
+      position: relative;
+    }
+
+    .back::before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 10px;
+      width: 9px;
+      height: 9px;
+      border-left: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      transform: rotate(45deg);
+    }
+
+    .capsule {
+      justify-self: end;
+      display: flex;
+      width: 72px;
+      height: 32px;
+      align-items: center;
+      justify-content: space-around;
+      border: 1px solid rgba(32, 37, 31, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .circle-icon,
+    .more-icon {
+      position: relative;
+      width: 18px;
+      height: 18px;
+    }
+
+    .circle-icon {
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .more-icon::before,
+    .more-icon::after,
+    .more-icon span {
+      content: "";
+      position: absolute;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .more-icon::before {
+      left: 1px;
+    }
+
+    .more-icon span {
+      left: 7px;
+    }
+
+    .more-icon::after {
+      left: 13px;
+    }
+
+    .hero {
+      padding: 18px 0 14px;
+    }
+
+    .hero-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .hero h3 {
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin-top: 8px;
+      max-width: none;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: nowrap;
+    }
+
+    .month-badge {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid rgba(47, 125, 79, .2);
+      border-radius: 999px;
+      color: var(--brand-dark);
+      background: rgba(255, 255, 255, .72);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .group-card,
+    .form-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 20px rgba(38, 54, 34, .06);
+    }
+
+    .group-card + .form-card {
+      margin-top: 12px;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .group-name {
+      font-size: 20px;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+
+    .group-subtitle {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .tag.active {
+      color: #fff;
+      background: var(--brand);
+    }
+
+    .tag.planned {
+      color: #6c4a06;
+      background: #fae6af;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      min-height: 64px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f7f9f3;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .privacy {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid rgba(240, 180, 65, .28);
+      border-radius: 8px;
+      color: #6c4a06;
+      background: rgba(255, 246, 225, .9);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 9px;
+    }
+
+    .label-row strong {
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .helper {
+      color: var(--quiet);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .input {
+      display: flex;
+      align-items: center;
+      min-height: 50px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .input small {
+      margin-left: auto;
+      color: var(--quiet);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .check {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .check i {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--brand);
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--brand);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(47, 125, 79, .22);
+    }
+
+    .next-step {
+      margin-top: 12px;
+      color: var(--brand-dark);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+
+    .bottom-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px 18px 16px;
+      border-top: 1px solid rgba(223, 229, 216, .9);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(16px);
+    }
+
+    .tab {
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      color: var(--quiet);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      color: var(--brand-dark);
+    }
+
+    .tab-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      background: currentColor;
+      opacity: .25;
+    }    .spec {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 12px 32px rgba(38, 54, 34, .08);
+    }
+
+    .spec h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .spec-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .spec-block {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .spec-block h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .spec-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .state-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .state-card {
+      min-height: 108px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+    }
+
+    .state-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .state-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        width: min(430px, calc(100vw - 20px));
+        padding: 20px 0 32px;
+      }
+
+      .board-title {
+        display: block;
+      }
+
+      .meta {
+        margin-top: 8px;
+        text-align: left;
+      }
+
+      .canvas {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+      position: relative;
+        width: 100%;
+        max-width: 390px;
+      }
+
+      .state-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-title">
+      <div>
+        <h1>一点运动微信打卡小程序：加入小组页原型图</h1>
+        <p class="meta">依据：docs/00-project-principles.md、docs/01-prd.md、docs/02-spec.md</p>
+      </div>
+      <p class="meta">页面 03 · 加入小组 · v1.0 MVP</p>
+    </header>
+
+    <section class="canvas" aria-label="加入小组页原型图">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="signals" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span>
+          </div>
+
+          <nav class="nav" aria-label="微信小程序导航">
+            <span class="back" aria-hidden="true"></span>
+            <h2>加入小组</h2>
+            <div class="capsule" aria-hidden="true">
+              <span class="more-icon"><span></span></span>
+              <span class="circle-icon"></span>
+            </div>
+          </nav>
+
+          <section class="hero">
+            <div class="hero-title">
+              <div>
+                <h3>加入小组<br>设置你的昵称</h3>
+                <p>加入后，你可以继续设置本月目标。</p>
+              </div>
+              <span class="month-badge">邀请码 YD-6K28</span>
+            </div>
+          </section>
+
+          <section class="group-card" aria-label="待加入小组信息">
+            <div class="card-top">
+              <div>
+                <h4 class="group-name">六月晨跑打卡</h4>
+                <p class="group-subtitle">创建者：獭獭 · 微信群分享入口</p>
+              </div>
+              <span class="tag active">进行中</span>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <strong>06.01</strong>
+                <span>开始日期</span>
+              </div>
+              <div class="stat">
+                <strong>06.30</strong>
+                <span>结束日期</span>
+              </div>
+              <div class="stat">
+                <strong>18人</strong>
+                <span>当前成员</span>
+              </div>
+            </div>
+            <div class="privacy" role="status">
+              <span>你的目标及打卡情况将对同组有效成员可见。</span>
+            </div>
+          </section>
+
+          <section class="form-card" aria-label="加入小组表单">
+            <div class="label-row">
+              <strong>小组内昵称</strong>
+            <span class="helper">1-12 个字符</span>
+            </div>
+          <div class="input">小鹿 <small>2/12</small></div>
+            <button class="primary-btn">确认加入并设置目标</button>
+          </section>
+
+          <footer class="bottom-bar" aria-label="底部导航">
+            <div class="tab active">
+              <span class="tab-dot"></span>
+              <span>小组</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>打卡</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>我的</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>回顾</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      <aside class="spec" aria-label="原型说明">
+        <h2>页面定义</h2>
+        <div class="spec-grid">
+          <section class="spec-block">
+            <h3>加入页承载的核心任务</h3>
+            <ul>
+              <li>展示待加入小组名称、生命周期和成员数。</li>
+              <li>提示目标、打卡照片、备注和统计的同组可见性。</li>
+              <li>要求用户设置小组内昵称。</li>
+              <li>完成加入后进入目标设置流程。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>关键规则映射</h3>
+            <ul>
+              <li>仅未开始 / 进行中小组允许加入。</li>
+              <li>已归档 / 已解散小组应阻止加入并给出明确提示。</li>
+              <li>同一用户在同一小组中不得存在多个有效成员关系。</li>
+              <li>已退出成员可重新加入；已被移除成员当前版本不可重新加入。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>操作路径</h3>
+            <ul>
+              <li>用户通过微信群分享卡片或邀请码进入本页。</li>
+              <li>用户核对小组信息并填写昵称。</li>
+              <li>确认加入后创建有效成员关系。</li>
+              <li>加入成功后进入目标设置页，完成月度目标配置。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>页面状态草图</h3>
+            <div class="state-row">
+              <div class="state-card">
+                <strong>昵称为空</strong>
+                <p>阻止提交，提示“昵称不能为空”。</p>
+              </div>
+              <div class="state-card">
+                <strong>小组满员</strong>
+                <p>阻止加入，提示“小组人数已满”。</p>
+              </div>
+              <div class="state-card">
+                <strong>无效入口</strong>
+                <p>提示“邀请码无效”，不暴露小组数据。</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
+
+
+
+
+

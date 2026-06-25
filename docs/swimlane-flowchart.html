@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>一点运动 v1.0 泳道流程图</title>
+  <style>
+    :root {
+      --paper: #fbfaf6;
+      --ink: #17211b;
+      --muted: #5d6a61;
+      --line: #c9d5cb;
+      --lane: #eef4ef;
+      --creator: #e46c46;
+      --member: #2f80ed;
+      --page: #23866d;
+      --service: #7a59c9;
+      --data: #d99c25;
+      --stats: #425c6b;
+      --decision: #fff0bd;
+      --danger: #ffe2dc;
+      --ok: #e5f5eb;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    main {
+      width: min(1780px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    header {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .meta,
+    .note,
+    .rule-list {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      background: var(--white);
+      border: 2px solid var(--ink);
+      font-size: 14px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .swatch {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      border: 1.5px solid var(--ink);
+      border-radius: 4px;
+    }
+
+    .board {
+      overflow: auto;
+      background: var(--white);
+      border: 2px solid var(--ink);
+    }
+
+    .swimlane {
+      min-width: 1660px;
+      display: grid;
+      grid-template-columns: 142px repeat(7, minmax(196px, 1fr));
+    }
+
+    .cell {
+      position: relative;
+      min-height: 136px;
+      padding: 10px;
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      border-left: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+    }
+
+    .cell:nth-child(8n + 1) {
+      border-left: 0;
+    }
+
+    .cell.header,
+    .cell.lane {
+      background: var(--lane);
+      font-weight: 800;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .cell.header {
+      min-height: 66px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cell.lane {
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .cell.flow::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -12px;
+      width: 22px;
+      border-top: 2px solid var(--ink);
+      z-index: 2;
+    }
+
+    .cell.flow::before {
+      content: "";
+      position: absolute;
+      top: calc(50% - 5px);
+      right: -14px;
+      border-left: 8px solid var(--ink);
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      z-index: 3;
+    }
+
+    .cell.stop::after,
+    .cell.stop::before {
+      display: none;
+    }
+
+    .node {
+      min-height: 56px;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      padding: 8px 10px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      text-align: center;
+      line-height: 1.25;
+      font-size: 13px;
+    }
+
+    .node strong {
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .node small {
+      line-height: 1.35;
+    }
+
+    .creator,
+    .member,
+    .page,
+    .service,
+    .stats {
+      color: var(--white);
+    }
+
+    .creator { background: var(--creator); }
+    .member { background: var(--member); }
+    .page { background: var(--page); }
+    .service { background: var(--service); }
+    .data { background: var(--data); }
+    .stats { background: var(--stats); }
+    .decision { background: var(--decision); border-radius: 18px; }
+    .danger { background: var(--danger); }
+    .ok { background: var(--ok); }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .rule-card {
+      padding: 14px;
+      background: var(--white);
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+    }
+
+    .rule-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .rule-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        width: calc(100vw - 20px);
+        padding-top: 18px;
+      }
+
+      .rules {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body {
+        background: var(--white);
+      }
+
+      main {
+        width: 100%;
+        padding: 10mm;
+      }
+
+      .board {
+        overflow: visible;
+      }
+
+      .swimlane {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>一点运动微信打卡小程序 v1.0 泳道流程图</h1>
+      <div class="meta">
+        <span>依据：Constitution v1.0.9、PRD v1.0.9、Spec v1.0.12</span>
+        <span>范围：创建、加入、目标、打卡、补卡、查看、统计、成员管理、归档</span>
+        <span>口径：按北京时间自然日和自然月计算</span>
+      </div>
+      <p class="note">本图把端到端流程拆为 6 条泳道：创建者、成员、小程序页面、云函数/服务校验、数据状态、统计与归档。横向按业务阶段推进，纵向展示同一阶段中各角色和系统职责的交接关系。</p>
+    </header>
+
+    <div class="legend" aria-label="图例">
+      <span><i class="swatch" style="background: var(--creator)"></i>创建者操作</span>
+      <span><i class="swatch" style="background: var(--member)"></i>成员操作</span>
+      <span><i class="swatch" style="background: var(--page)"></i>小程序页面</span>
+      <span><i class="swatch" style="background: var(--service)"></i>云函数/服务校验</span>
+      <span><i class="swatch" style="background: var(--data)"></i>数据状态</span>
+      <span><i class="swatch" style="background: var(--stats)"></i>统计/归档</span>
+      <span><i class="swatch" style="background: var(--decision)"></i>关键判断</span>
+      <span><i class="swatch" style="background: var(--danger)"></i>禁止或不可见</span>
+    </div>
+
+    <section class="board" aria-label="一点运动泳道流程图">
+      <div class="swimlane">
+        <div class="cell header">泳道 / 阶段</div>
+        <div class="cell header">1. 入口与身份</div>
+        <div class="cell header">2. 创建或加入小组</div>
+        <div class="cell header">3. 设置月度目标</div>
+        <div class="cell header">4. 打卡与补卡</div>
+        <div class="cell header">5. 查看与统计</div>
+        <div class="cell header">6. 关系管理</div>
+        <div class="cell header">7. 月末归档或终止</div>
+
+        <div class="cell lane">创建者</div>
+        <div class="cell flow">
+          <div class="node creator"><strong>进入首页</strong><small>登录后从小组入口页发起创建</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node creator"><strong>创建本月/下月小组</strong><small>填写小组名称，创建者自动成为 active 成员</small></div>
+          <div class="node creator"><strong>分享小组</strong><small>微信群分享卡片或邀请码</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node creator"><strong>查看成员目标</strong><small>可查看 active 成员目标、照片、备注和统计</small></div>
+          <div class="node danger"><strong>权限边界</strong><small>不可修改或移除他人目标与打卡记录</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node creator"><strong>查看打卡状态</strong><small>不手工统计，依赖系统统计复盘</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node creator"><strong>查看小组复盘</strong><small>成员进度、完成日期、小组整体完成率</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node creator"><strong>管理小组</strong><small>改名、移除成员、转让创建者、转让后退出、解散</small></div>
+          <div class="node decision"><strong>敏感操作</strong><small>二次确认并记录审计</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node stats"><strong>归档只读</strong><small>仅查看快照</small></div>
+          <div class="node danger"><strong>解散后</strong><small>普通页面不可见</small></div>
+        </div>
+
+        <div class="cell lane">成员</div>
+        <div class="cell flow">
+          <div class="node member"><strong>通过分享或邀请码进入</strong><small>授权登录后继续</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node member"><strong>加入小组</strong><small>设置组内昵称，确认同组可见提示</small></div>
+          <div class="node member"><strong>重新加入</strong><small>exited 可重入，removed 不可重入</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node member"><strong>选择目标类型</strong><small>运动天数、次数、时长、热量、跑步、骑行、三环</small></div>
+          <div class="node member"><strong>填写目标值和一点币</strong><small>一点币仅展示，不结算不统计</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node member"><strong>提交当天打卡</strong><small>运动数值、1 至 3 张照片、可选 100 字备注</small></div>
+          <div class="node member"><strong>补昨日或前天</strong><small>无需原因，无需审批，展示补卡标记</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node member"><strong>查看自己和同组成员</strong><small>目标、打卡状态、照片、备注、统计结果</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node member"><strong>主动退出</strong><small>二次确认后成员关系变为 exited</small></div>
+          <div class="node danger"><strong>退出后</strong><small>普通页面不可见，不计入当前统计</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node stats"><strong>查看归档</strong><small>仅归档快照生成时 active 成员可看</small></div>
+        </div>
+
+        <div class="cell lane">小程序页面</div>
+        <div class="cell flow">
+          <div class="node page"><strong>首页 / 小组入口页</strong><small>创建入口、邀请码入口、已加入小组列表</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node page"><strong>创建小组页</strong><small>选择本月或下月，填写名称</small></div>
+          <div class="node page"><strong>加入小组页</strong><small>展示小组信息、成员数、可见性提示</small></div>
+          <div class="node page"><strong>小组详情页</strong><small>成员列表、分享入口、管理入口</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node page"><strong>目标类型页</strong><small>选择 v1.0 支持范围内的目标类型</small></div>
+          <div class="node page"><strong>目标值页</strong><small>按目标类型展示必填字段和单位</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node page"><strong>打卡页</strong><small>当天打卡，支持提交当天修改</small></div>
+          <div class="node page"><strong>补卡页</strong><small>仅昨日或前天，支持补卡当天修改</small></div>
+          <div class="node page"><strong>打卡记录页</strong><small>查看有效记录和补卡标记</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node page"><strong>我的首页 / 目标详情</strong><small>个人综合进度、单项目标进度</small></div>
+          <div class="node page"><strong>成员目标详情</strong><small>从小组详情查看同组成员</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node page"><strong>小组管理页</strong><small>改名、转让、移除、退出、解散入口</small></div>
+          <div class="node page"><strong>确认弹窗</strong><small>退出、移除、转让、解散前确认</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node page"><strong>回顾首页</strong><small>归档小组列表</small></div>
+          <div class="node page"><strong>归档复盘详情</strong><small>只读展示完成概览和成员明细</small></div>
+        </div>
+
+        <div class="cell lane">云函数 / 服务校验</div>
+        <div class="cell flow">
+          <div class="node service"><strong>登录与权限校验</strong><small>未登录禁止访问需身份页面和操作</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node service"><strong>创建校验</strong><small>名称必填、生命周期、本月 active、下月 upcoming</small></div>
+          <div class="node service"><strong>加入校验</strong><small>未满 50 人、非 archived/dissolved、邀请码有效</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node service"><strong>目标校验</strong><small>类型合法、数值合法、目标依赖字段齐全</small></div>
+          <div class="node service"><strong>目标锁定</strong><small>upcoming 可改，active 首次保存后 locked</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node service"><strong>提交校验</strong><small>小组 active、成员 active、已设置目标</small></div>
+          <div class="node service"><strong>内容校验</strong><small>照片 1 至 3 张、静态图片、备注不超过 100 字</small></div>
+          <div class="node decision"><strong>限制校验</strong><small>同运动日期 5 次物理有效记录；每自然日补卡 3 次</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node service"><strong>统计口径</strong><small>active 成员、有效目标配置、valid/edited 记录</small></div>
+          <div class="node service"><strong>退出重入口径</strong><small>退出前完成状态不继承，按重入后 active 区间重算</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node service"><strong>管理权限校验</strong><small>创建者必须绑定 active 成员关系</small></div>
+          <div class="node service"><strong>审计记录</strong><small>操作人、对象、时间、结果</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node service"><strong>归档任务</strong><small>自然月结束生成统计快照</small></div>
+          <div class="node service"><strong>解散处理</strong><small>普通页面访问全部阻断</small></div>
+        </div>
+
+        <div class="cell lane">数据状态</div>
+        <div class="cell flow">
+          <div class="node data"><strong>用户与成员关系</strong><small>用户身份、成员关系初始化</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node data"><strong>小组状态</strong><small>upcoming / active / archived / dissolved</small></div>
+          <div class="node data"><strong>成员关系</strong><small>active / exited / removed</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node data"><strong>目标配置状态</strong><small>unset / set / locked</small></div>
+          <div class="node data"><strong>作用域</strong><small>成员 - 小组 - 自然月整组目标配置</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node data"><strong>打卡记录状态</strong><small>valid / edited / invalidated</small></div>
+          <div class="node data"><strong>照片云存储</strong><small>照片不进入小程序本地代码包</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node data"><strong>当前统计结果</strong><small>随当前有效成员和有效记录重算</small></div>
+          <div class="node danger"><strong>无目标或无成员</strong><small>显示“未设置目标”或“暂无有效成员”</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node data"><strong>状态变更</strong><small>退出为 exited，移除为 removed，解散为 dissolved</small></div>
+          <div class="node ok"><strong>物理保留</strong><small>核心业务数据不随意物理删除</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node data"><strong>归档快照</strong><small>冻结完成状态、完成日期、整体完成率</small></div>
+        </div>
+
+        <div class="cell lane">统计与归档</div>
+        <div class="cell flow">
+          <div class="node stats"><strong>统计前提</strong><small>登录、有权限、有 active 成员关系</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node stats"><strong>未参与阶段</strong><small>加入前日期仅昨日和前天可按补卡规则补交</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node stats"><strong>目标参与统计</strong><small>仅 set 或 locked 且成员具备统计资格</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node stats"><strong>进度更新</strong><small>按运动日期累计，补卡按被补运动日期计入</small></div>
+          <div class="node stats"><strong>完成判定</strong><small>所有已设置目标达到 100% 才完成月度目标</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node stats"><strong>个人综合进度</strong><small>所有已设置目标的单项目标进度平均值</small></div>
+          <div class="node stats"><strong>小组完成率</strong><small>已完成 active 成员 / 当前 active 成员</small></div>
+        </div>
+        <div class="cell flow">
+          <div class="node stats"><strong>退出重入重算</strong><small>退出前数据不补回当前统计；允许补交的退出期间昨日/前天例外</small></div>
+        </div>
+        <div class="cell stop">
+          <div class="node stats"><strong>archived</strong><small>只读展示归档时快照，不再重算</small></div>
+          <div class="node danger"><strong>dissolved</strong><small>普通统计页面不展示，仅后台审计或争议追溯</small></div>
+        </div>
+      </div>
+    </section>
+
+    <h2>关键规则索引</h2>
+    <div class="rules">
+      <section class="rule-card">
+        <h3>权限与可见性</h3>
+        <ul class="rule-list">
+          <li>创建者必须同时拥有该小组 active 成员关系。</li>
+          <li>active 成员可查看同组成员的目标、打卡照片、备注和统计。</li>
+          <li>exited、removed、dissolved 后普通页面不可见，不计入当前统计。</li>
+        </ul>
+      </section>
+      <section class="rule-card">
+        <h3>打卡与补卡限制</h3>
+        <ul class="rule-list">
+          <li>仅 active 小组、active 成员、已设置目标时可提交。</li>
+          <li>同一成员、同一小组、同一运动日期最多 5 次物理有效记录。</li>
+          <li>每个用户每自然日最多 3 次补卡，且只能补昨日或前天。</li>
+        </ul>
+      </section>
+      <section class="rule-card">
+        <h3>统计与归档</h3>
+        <ul class="rule-list">
+          <li>统计使用有效目标配置和具备统计资格的 valid / edited 记录。</li>
+          <li>月目标完成以所有已设置目标均达到 100% 为准。</li>
+          <li>归档时冻结快照，归档后普通页面不再重算。</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

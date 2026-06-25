@@ -1,0 +1,47 @@
+# OS and editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Dependencies and package-manager caches
+node_modules/
+miniprogram_npm/
+.pnpm-store/
+.npm/
+.yarn/
+
+# Build, test, and coverage output
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# WeChat Mini Program / cloud development local-only files
+project.private.config.json
+private.config.json
+cloudbaserc.json
+.tcb/
+.cloudbase/
+
+# Accidental system/cache directory copied into the project
+%SystemDrive%/

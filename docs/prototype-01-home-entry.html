@@ -1,0 +1,765 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一点运动 - 首页原型图</title>
+  <style>
+    :root {
+      --page: #f6f7f3;
+      --surface: #ffffff;
+      --surface-soft: #f0f4e8;
+      --ink: #20251f;
+      --muted: #687064;
+      --quiet: #8a9384;
+      --line: #dfe5d8;
+      --brand: #2f7d4f;
+      --brand-dark: #23613e;
+      --accent: #f0b441;
+      --danger: #ba5148;
+      --shadow: 0 16px 40px rgba(38, 54, 34, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(47, 125, 79, .12), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    .board {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .board-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    h1,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: right;
+    }
+
+    .canvas {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .phone {
+      position: relative;
+      width: 390px;
+      min-height: 844px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 10px solid #151815;
+      border-radius: 42px;
+      background: var(--page);
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      min-height: 824px;
+      padding: 0 18px 96px;
+      background:
+        radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .22), transparent 150px),
+        linear-gradient(180deg, rgba(47, 125, 79, .2), rgba(246, 247, 243, 0) 260px),
+        var(--page);
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .signals {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      color: var(--ink);
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: 40px 1fr 72px;
+      align-items: center;
+      height: 48px;
+    }
+
+    .nav h2 {
+      margin: 0;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .capsule {
+      justify-self: end;
+      display: flex;
+      width: 72px;
+      height: 32px;
+      align-items: center;
+      justify-content: space-around;
+      border: 1px solid rgba(32, 37, 31, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .circle-icon,
+    .more-icon {
+      position: relative;
+      width: 18px;
+      height: 18px;
+    }
+
+    .circle-icon {
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .more-icon::before,
+    .more-icon::after,
+    .more-icon span {
+      content: "";
+      position: absolute;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    .more-icon::before {
+      left: 1px;
+    }
+
+    .more-icon span {
+      left: 7px;
+    }
+
+    .more-icon::after {
+      left: 13px;
+    }
+
+    .hero {
+      padding: 20px 0 16px;
+    }
+
+    .hero-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .hero h3 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin-top: 8px;
+      max-width: 238px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .month-badge {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid rgba(47, 125, 79, .2);
+      border-radius: 999px;
+      color: var(--brand-dark);
+      background: rgba(255, 255, 255, .72);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0 18px;
+    }
+
+    .action {
+      min-height: 92px;
+      padding: 14px;
+      border: 1px solid rgba(47, 125, 79, .14);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgba(38, 54, 34, .08);
+    }
+
+    .action.primary {
+      color: #fff;
+      background: var(--brand);
+    }
+
+    .action strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .action span {
+      display: block;
+      margin-top: 5px;
+      color: currentColor;
+      opacity: .78;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .icon {
+      width: 26px;
+      height: 26px;
+      display: inline-block;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .section-meta {
+      color: var(--quiet);
+      font-size: 12px;
+    }
+
+    .group-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .group-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 20px rgba(38, 54, 34, .06);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .group-name {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .tag.active {
+      color: #fff;
+      background: var(--brand);
+    }
+
+    .tag.planned {
+      color: #6c4a06;
+      background: #fae6af;
+    }
+
+    .tag.archived {
+      color: #5f665a;
+      background: #e5e9df;
+    }
+
+    .group-subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .progress-wrap {
+      margin-top: 12px;
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7ece1;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--brand), #81a95b);
+    }
+
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    .avatars {
+      display: flex;
+      align-items: center;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      margin-left: -7px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--brand);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .avatar:first-child {
+      margin-left: 0;
+    }
+
+    .avatar.alt {
+      color: #5b420c;
+      background: var(--accent);
+    }
+
+    .avatar.mute {
+      color: var(--muted);
+      background: #dfe5d8;
+    }
+
+    .link-btn {
+      border: 0;
+      padding: 0;
+      color: var(--brand-dark);
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .readonly {
+      color: var(--quiet);
+    }
+
+    .notice {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid rgba(186, 81, 72, .18);
+      border-radius: 8px;
+      color: #6c3c36;
+      background: rgba(255, 246, 235, .9);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .bottom-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px 18px 16px;
+      border-top: 1px solid rgba(223, 229, 216, .9);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(16px);
+    }
+
+    .tab {
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      color: var(--quiet);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      color: var(--brand-dark);
+    }
+
+    .tab-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      background: currentColor;
+      opacity: .25;
+    }
+
+    .spec {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 12px 32px rgba(38, 54, 34, .08);
+    }
+
+    .spec h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .spec-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .spec-block {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .spec-block h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .spec-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .state-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .state-card {
+      min-height: 110px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcf8;
+    }
+
+    .state-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .state-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        width: min(430px, calc(100vw - 20px));
+        padding: 20px 0 32px;
+      }
+
+      .board-title {
+        display: block;
+      }
+
+      .meta {
+        margin-top: 8px;
+        text-align: left;
+      }
+
+      .canvas {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+      position: relative;
+        width: 100%;
+        max-width: 390px;
+      }
+
+      .state-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-title">
+      <div>
+        <h1>一点运动微信打卡小程序：首页 / 小组入口页原型图</h1>
+        <p class="meta">依据：docs/00-project-principles.md、docs/01-prd.md、docs/02-spec.md</p>
+      </div>
+      <p class="meta">页面 01 · 移动端优先 · v1.0 MVP</p>
+    </header>
+
+    <section class="canvas" aria-label="首页原型图">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="signals" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span>
+          </div>
+
+          <nav class="nav" aria-label="微信小程序导航">
+            <span></span>
+            <h2>一点运动</h2>
+            <div class="capsule" aria-hidden="true">
+              <span class="more-icon"><span></span></span>
+              <span class="circle-icon"></span>
+            </div>
+          </nav>
+
+          <section class="hero">
+            <div class="hero-title">
+              <div>
+                <h3>六月运动<br>一点开始</h3>
+                <p>今天还有 x 个小组可打卡。</p>
+              </div>
+              <span class="month-badge">2026.06</span>
+            </div>
+          </section>
+
+          <section class="quick-actions" aria-label="快捷入口">
+            <div class="action primary">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <strong>创建小组</strong>
+            </div>
+            <div class="action">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7h16M4 12h16M4 17h10" stroke="#2f7d4f" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <strong>邀请码加入</strong>
+            </div>
+          </section>
+
+          <section class="section" aria-label="当前小组">
+            <div class="section-head">
+              <span class="section-title">当前小组</span>
+              <span class="section-meta">1 个进行中</span>
+            </div>
+            <div class="group-list">
+              <article class="group-card">
+                <div class="card-top">
+                  <div>
+                    <h4 class="group-name">六月晨跑打卡</h4>
+                    <p class="group-subtitle">06.01 - 06.30 · 18 人 · 已设置目标</p>
+                  </div>
+                  <span class="tag active">进行中</span>
+                </div>
+                <div class="progress-wrap">
+                  <div class="progress-row">
+                    <span>个人综合进度</span>
+                    <strong>62%</strong>
+                  </div>
+                  <div class="progress"><span style="width: 62%"></span></div>
+                </div>
+                <div class="card-foot">
+                  <div class="avatars" aria-label="成员头像">
+                    <span class="avatar">我</span>
+                    <span class="avatar alt">桃</span>
+                    <span class="avatar mute">+16</span>
+                  </div>
+                  <button class="link-btn">进入小组</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="section" aria-label="即将开始">
+            <div class="section-head">
+              <span class="section-title">即将开始</span>
+              <span class="section-meta">可先设置目标</span>
+            </div>
+            <article class="group-card">
+              <div class="card-top">
+                <div>
+                  <h4 class="group-name">七月力量计划</h4>
+                  <p class="group-subtitle">07.01 - 07.31 · 6 人 · 小组尚未开始</p>
+                </div>
+                <span class="tag planned">未开始</span>
+              </div>
+              <div class="card-foot">
+                <div class="avatars" aria-label="成员头像">
+                  <span class="avatar">我</span>
+                  <span class="avatar alt">鲸</span>
+                  <span class="avatar mute">+4</span>
+                </div>
+                <button class="link-btn">设置目标</button>
+              </div>
+            </article>
+          </section>
+
+
+          <footer class="bottom-bar" aria-label="底部导航">
+            <div class="tab active">
+              <span class="tab-dot"></span>
+              <span>小组</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>打卡</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>我的</span>
+            </div><div class="tab">
+              <span class="tab-dot"></span>
+              <span>回顾</span>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      <aside class="spec" aria-label="原型说明">
+        <h2>页面定义</h2>
+        <div class="spec-grid">
+          <section class="spec-block">
+            <h3>首页承载的核心任务</h3>
+            <ul>
+              <li>展示用户已加入或创建的进行中 / 未开始小组。</li>
+              <li>提供创建小组入口。</li>
+              <li>提供通过邀请码加入小组入口。</li>
+              <li>不混入已归档小组，归档内容进入“回顾”页签。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>关键规则映射</h3>
+            <ul>
+              <li>进行中小组可进入打卡和查看成员状态。</li>
+              <li>未开始小组不可打卡，但可提前设置目标。</li>
+              <li>已归档小组只在“回顾”页签只读展示，不出现在首页小组列表。</li>
+              <li>已解散、已退出、已被移除相关数据不在普通首页展示。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>操作路径</h3>
+            <ul>
+              <li>创建小组：首页点击“创建小组”进入创建页。</li>
+              <li>加入小组：首页点击“邀请码加入”进入加入页。</li>
+              <li>查看小组：首页点击“进入小组”进入小组详情页。</li>
+              <li>查看归档：底部点击“回顾”进入归档复盘页签。</li>
+            </ul>
+          </section>
+
+          <section class="spec-block">
+            <h3>首页状态草图</h3>
+            <div class="state-row">
+              <div class="state-card">
+                <strong>空状态</strong>
+                <p>暂无小组时展示创建小组和邀请码加入两个入口。</p>
+              </div>
+              <div class="state-card">
+                <strong>加载中</strong>
+                <p>列表区域使用骨架屏，保留顶部主入口。</p>
+              </div>
+              <div class="state-card">
+                <strong>错误状态</strong>
+                <p>展示失败原因和重试入口，不暴露无权限数据。</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
+
+
+

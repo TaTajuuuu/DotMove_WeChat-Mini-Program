@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>一点运动 - 小组管理页原型图</title>
+  <style>
+    :root {
+      --page: #f6f7f3;
+      --surface: #ffffff;
+      --ink: #20251f;
+      --muted: #687064;
+      --quiet: #8a9384;
+      --line: #dfe5d8;
+      --brand: #2f7d4f;
+      --brand-dark: #23613e;
+      --accent: #f0b441;
+      --danger: #ba5148;
+      --shadow: 0 16px 40px rgba(38, 54, 34, .12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: linear-gradient(180deg, rgba(47, 125, 79, .12), rgba(246, 247, 243, 0) 260px), var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    h1, h2, h3, h4, p { margin: 0; }
+    .board { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 32px 0 48px; }
+    .board-title { display: flex; justify-content: space-between; gap: 24px; align-items: flex-end; margin-bottom: 24px; }
+    h1 { font-size: 28px; line-height: 1.25; letter-spacing: 0; }
+    .meta { color: var(--muted); font-size: 14px; line-height: 1.6; text-align: right; }
+    .canvas { display: grid; grid-template-columns: 420px 1fr; gap: 28px; align-items: start; }
+    .phone { position: relative; width: 390px; min-height: 844px; margin: 0 auto; overflow: hidden; border: 10px solid #151815; border-radius: 42px; background: var(--page); box-shadow: var(--shadow); }
+    .screen { min-height: 824px; padding: 0 18px 96px; background: radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .22), transparent 150px), linear-gradient(180deg, rgba(47, 125, 79, .2), rgba(246, 247, 243, 0) 260px), var(--page); }
+    .statusbar { display: flex; justify-content: space-between; align-items: center; height: 40px; padding: 0 8px; font-size: 13px; font-weight: 700; }
+    .signals { display: inline-flex; gap: 5px; align-items: center; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+    .nav { display: grid; grid-template-columns: 40px 1fr 72px; align-items: center; height: 48px; }
+    .nav h2 { font-size: 18px; text-align: center; letter-spacing: 0; }
+    .back { width: 34px; height: 34px; border: 1px solid rgba(32, 37, 31, .14); border-radius: 17px; background: rgba(255, 255, 255, .72); position: relative; }
+    .back::before { content: ""; position: absolute; left: 13px; top: 10px; width: 9px; height: 9px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
+    .capsule { justify-self: end; display: flex; width: 72px; height: 32px; align-items: center; justify-content: space-around; border: 1px solid rgba(32, 37, 31, .16); border-radius: 18px; background: rgba(255, 255, 255, .76); }
+    .circle-icon, .more-icon { position: relative; width: 18px; height: 18px; }
+    .circle-icon { border: 2px solid var(--ink); border-radius: 50%; }
+    .more-icon::before, .more-icon::after, .more-icon span { content: ""; position: absolute; top: 8px; width: 4px; height: 4px; border-radius: 50%; background: var(--ink); }
+    .more-icon::before { left: 1px; } .more-icon span { left: 7px; } .more-icon::after { left: 13px; }
+    .hero { padding: 18px 0 14px; }
+    .hero-title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .hero h3 { font-size: 28px; line-height: 1.18; letter-spacing: 0; }
+    .hero p { margin-top: 8px; max-width: 248px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .badge, .tag { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; line-height: 1.2; }
+    .badge { border: 1px solid rgba(47, 125, 79, .2); color: var(--brand-dark); background: rgba(255, 255, 255, .72); }
+    .tag.creator { color: #5b420c; background: #fae6af; }
+    .tag.member { color: var(--brand-dark); background: #eef5e8; }
+    .card, .panel { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, .92); box-shadow: 0 8px 20px rgba(38, 54, 34, .06); }
+    .panel { margin-top: 12px; }
+    .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 10px; }
+    .section-title { font-size: 17px; font-weight: 800; }
+    .section-meta { color: var(--quiet); font-size: 12px; }
+    .input { display: flex; align-items: center; min-height: 50px; padding: 0 13px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcf8; font-size: 16px; font-weight: 800; }
+    .input small { margin-left: auto; color: var(--quiet); font-size: 12px; font-weight: 600; }
+    .invite { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 10px; padding: 12px; border: 1px dashed rgba(47, 125, 79, .34); border-radius: 8px; background: #fbfcf8; }
+    .invite strong { font-size: 22px; color: var(--brand-dark); letter-spacing: 1px; }
+    .ghost-btn, .danger-btn { min-height: 42px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 800; }
+    .ghost-btn { border: 1px solid rgba(47, 125, 79, .22); color: var(--brand-dark); background: #fff; }
+    .danger-btn { border: 1px solid rgba(186, 81, 72, .28); color: #fff; background: var(--danger); }
+    .member-list { display: grid; gap: 10px; }
+    .member { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .member:last-child { padding-bottom: 0; border-bottom: 0; }
+    .avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--brand); font-size: 13px; font-weight: 900; }
+    .avatar.alt { color: #5b420c; background: var(--accent); }
+    .avatar.mute { color: var(--muted); background: #dfe5d8; }
+    .member h4 { font-size: 14px; line-height: 1.25; letter-spacing: 0; }
+    .member p { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .member-actions { display: grid; gap: 6px; }
+    .member-actions button { min-height: 30px; padding: 0 8px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+    .notice { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 12px; border: 1px solid rgba(240, 180, 65, .28); border-radius: 8px; color: #6c4a06; background: rgba(255, 246, 225, .9); font-size: 12px; line-height: 1.45; }
+    .danger-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .bottom-bar { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px 18px 16px; border-top: 1px solid rgba(223, 229, 216, .9); background: rgba(255, 255, 255, .92); backdrop-filter: blur(16px); }
+    .tab { display: grid; gap: 4px; place-items: center; color: var(--quiet); font-size: 11px; font-weight: 700; }
+    .tab.active { color: var(--brand-dark); }
+    .tab-dot { width: 22px; height: 22px; border-radius: 8px; background: currentColor; opacity: .25; }
+    .spec { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, .76); box-shadow: 0 12px 32px rgba(38, 54, 34, .08); }
+    .spec h2 { margin: 0 0 14px; font-size: 20px; line-height: 1.3; }
+    .spec-grid { display: grid; gap: 14px; }
+    .spec-block { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+    .spec-block h3 { margin: 0 0 8px; font-size: 15px; line-height: 1.3; }
+    .spec-block ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .state-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .state-card { min-height: 108px; padding: 12px; border: 1px dashed var(--line); border-radius: 8px; background: #fbfcf8; }
+    .state-card strong { display: block; margin-bottom: 6px; font-size: 14px; }
+    .state-card p { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    @media (max-width: 900px) {
+      .board { width: min(430px, calc(100vw - 20px)); padding: 20px 0 32px; }
+      .board-title { display: block; } .meta { margin-top: 8px; text-align: left; } .canvas { grid-template-columns: 1fr; } .phone { width: 100%; max-width: 390px; } .state-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-title">
+      <div>
+        <h1>一点运动微信打卡小程序：小组管理页原型图</h1>
+        <p class="meta">依据：docs/00-project-principles.md、docs/01-prd.md、docs/02-spec.md</p>
+      </div>
+      <p class="meta">页面 07 · 创建者专属 · v1.0 MVP</p>
+    </header>
+
+    <section class="canvas" aria-label="小组管理页原型图">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="signals" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span>
+          </div>
+
+          <nav class="nav" aria-label="微信小程序导航">
+            <span class="back" aria-hidden="true"></span>
+            <h2>小组管理</h2>
+            <div class="capsule" aria-hidden="true">
+              <span class="more-icon"><span></span></span>
+              <span class="circle-icon"></span>
+            </div>
+          </nav>
+
+          <section class="hero">
+            <div class="hero-title">
+              <div>
+                <h3>维护小组<br>成员关系</h3>
+                <p>仅创建者可见。</p>
+              </div>
+              <span class="badge">创建者</span>
+            </div>
+          </section>
+
+          <section class="card" aria-label="小组名称管理">
+            <div class="section-head">
+              <span class="section-title">小组名称</span>
+              <span class="section-meta">1-20 个字符</span>
+            </div>
+        <div class="input">六月晨跑 <small>4/20</small></div>
+          </section>
+
+          <section class="panel" aria-label="邀请方式">
+            <div class="section-head">
+              <span class="section-title">邀请方式</span>
+              <span class="section-meta">未满 50 人可加入</span>
+            </div>
+            <div class="invite">
+              <strong>YD-6K28</strong>
+              <button class="ghost-btn">复制</button>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="成员管理">
+            <div class="section-head">
+              <span class="section-title">成员管理</span>
+              <span class="section-meta">18/50</span>
+            </div>
+            <div class="member-list">
+              <article class="member">
+                <span class="avatar alt">獭</span>
+                <div>
+                  <h4>獭獭</h4>
+                  <p>当前创建者 · 有效成员</p>
+                </div>
+                <span class="tag creator">创建者</span>
+              </article>
+              <article class="member">
+                <span class="avatar">鹿</span>
+                <div>
+                  <h4>小鹿</h4>
+                  <p>加入于 06.18 · 已设置目标</p>
+                </div>
+                <div class="member-actions">
+                  <button class="ghost-btn">转让</button>
+                  <button class="danger-btn">移除</button>
+                </div>
+              </article>
+              <article class="member">
+                <span class="avatar mute">周</span>
+                <div>
+                  <h4>周周</h4>
+                  <p>加入于 06.20 · 未设置目标</p>
+                </div>
+                <div class="member-actions">
+                  <button class="ghost-btn">转让</button>
+                  <button class="danger-btn">移除</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="危险操作">
+            <div class="section-head">
+              <span class="section-title">危险操作</span>
+              <span class="section-meta">二次确认</span>
+            </div>
+            <div class="danger-zone">
+              <button class="ghost-btn">退出小组</button>
+              <button class="danger-btn">解散小组</button>
+            </div>
+            <div class="notice" role="status">
+              <span>创建者退出前必须先转让创建者身份。<br>解散后普通页面不可见且不可恢复。</span>
+            </div>
+          </section>
+
+          <footer class="bottom-bar" aria-label="底部导航">
+            <div class="tab active"><span class="tab-dot"></span><span>小组</span></div><div class="tab"><span class="tab-dot"></span><span>打卡</span></div><div class="tab"><span class="tab-dot"></span><span>我的</span></div><div class="tab"><span class="tab-dot"></span><span>回顾</span></div>
+          </footer>
+        </div>
+      </div>
+
+      <aside class="spec" aria-label="原型说明">
+        <h2>页面定义</h2>
+        <div class="spec-grid">
+          <section class="spec-block">
+            <h3>小组管理承载的核心任务</h3>
+            <ul>
+              <li>仅创建者可见，普通成员不展示该页面入口。</li>
+              <li>修改小组名称、复制邀请码、分享小组。</li>
+              <li>对有效成员执行转让创建者或移除成员。</li>
+              <li>处理创建者退出和解散小组等敏感操作。</li>
+            </ul>
+          </section>
+          <section class="spec-block">
+            <h3>关键规则映射</h3>
+            <ul>
+              <li>转让创建者只能转给有效成员。</li>
+              <li>创建者退出自己创建的小组前必须先转让身份。</li>
+              <li>移除成员后该成员 v1.0 不可重新加入同一小组。</li>
+              <li>解散小组不可逆，创建者和成员普通页面均不可见。</li>
+            </ul>
+          </section>
+          <section class="spec-block">
+            <h3>页面状态草图</h3>
+            <div class="state-row">
+              <div class="state-card"><strong>非创建者</strong><p>不展示管理入口；直接阻止访问并提示无权限。</p></div>
+              <div class="state-card"><strong>转让确认</strong><p>提示“转让后对方将成为新的创建者”。</p></div>
+              <div class="state-card"><strong>解散确认</strong><p>提示解散后普通页面不可见且无法恢复。</p></div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
