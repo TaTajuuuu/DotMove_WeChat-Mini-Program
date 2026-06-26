@@ -77,16 +77,8 @@ class AppError extends Error {
   }
 }
 
-function notImplemented(actionName) {
-  return new AppError(
-    ErrorCodes.SYSTEM_NOT_IMPLEMENTED,
-    `${actionName} is reserved for a later implementation task.`
-  );
-}
-
 module.exports = {
   AppError,
   ErrorCodes,
-  ErrorMessages,
-  notImplemented
+  ErrorMessages
 };

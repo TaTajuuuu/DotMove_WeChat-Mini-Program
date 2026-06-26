@@ -6,7 +6,8 @@ const {
   getYesterdayDateKey,
   parseDateKeyStart
 } = require("../common/date");
-const { AppError, ErrorCodes, notImplemented } = require("../common/errors");
+const { AppError, ErrorCodes } = require("../common/errors");
+const { calculateMemberStats, isEligibleRecord } = require("../common/stats");
 
 const EFFECTIVE_RECORD_STATUSES = new Set(["valid", "edited"]);
 const STATIC_IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp)$/i;
@@ -112,38 +113,57 @@ function requireBoolean(value, field) {
   return value;
 }
 
+function requireMetricForGoal(normalized, field, goalType) {
+  if (!Object.prototype.hasOwnProperty.call(normalized, field)) {
+    throw new AppError(ErrorCodes.CHECKIN_INVALID_METRICS, "", { field: `metrics.${field}`, goalType });
+  }
+}
+
 function normalizeMetrics(metrics = {}, selectedGoalTypes = []) {
   if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
     throw new AppError(ErrorCodes.CHECKIN_INVALID_METRICS, "", { field: "metrics" });
   }
 
   const normalized = {};
-  const requiresCalories = selectedGoalTypes.includes("calorieTotal") ||
-    selectedGoalTypes.includes("exerciseDays") ||
-    selectedGoalTypes.includes("exerciseTimes");
 
-  if (requiresCalories || metrics.calories !== undefined) {
+  if (metrics.calories !== undefined) {
     normalized.calories = normalizePositiveMetric(metrics.calories, "metrics.calories");
   }
 
-  if (selectedGoalTypes.includes("durationTotal") || metrics.durationMinutes !== undefined) {
+  if (metrics.durationMinutes !== undefined) {
     normalized.durationMinutes = normalizePositiveMetric(metrics.durationMinutes, "metrics.durationMinutes");
   }
 
-  if (selectedGoalTypes.includes("runningDistance") || metrics.runningDistanceKm !== undefined) {
+  if (metrics.runningDistanceKm !== undefined) {
     normalized.runningDistanceKm = normalizePositiveMetric(metrics.runningDistanceKm, "metrics.runningDistanceKm");
   }
 
-  if (selectedGoalTypes.includes("cyclingDistance") || metrics.cyclingDistanceKm !== undefined) {
+  if (metrics.cyclingDistanceKm !== undefined) {
     normalized.cyclingDistanceKm = normalizePositiveMetric(metrics.cyclingDistanceKm, "metrics.cyclingDistanceKm");
   }
 
-  if (selectedGoalTypes.includes("ringClosedDays") || metrics.ringClosed !== undefined) {
+  if (metrics.ringClosed !== undefined) {
     normalized.ringClosed = requireBoolean(metrics.ringClosed, "metrics.ringClosed");
   }
 
-  if (Object.keys(normalized).length === 0) {
-    throw new AppError(ErrorCodes.CHECKIN_INVALID_METRICS, "", { field: "metrics" });
+  const selected = new Set(Array.isArray(selectedGoalTypes) ? selectedGoalTypes : []);
+
+  if (selected.has("calorieTotal") || selected.has("exerciseDays") || selected.has("exerciseTimes")) {
+    requireMetricForGoal(normalized, "calories", "calorieRelated");
+  }
+  if (selected.has("durationTotal")) {
+    requireMetricForGoal(normalized, "durationMinutes", "durationTotal");
+  }
+  if (selected.has("runningDistance")) {
+    requireMetricForGoal(normalized, "runningDistanceKm", "runningDistance");
+  }
+  if (selected.has("cyclingDistance")) {
+    requireMetricForGoal(normalized, "cyclingDistanceKm", "cyclingDistance");
+  }
+  if (selected.has("ringClosedDays")) {
+    if (!Object.prototype.hasOwnProperty.call(normalized, "ringClosed")) {
+      throw new AppError(ErrorCodes.CHECKIN_INVALID_METRICS, "", { field: "metrics.ringClosed", goalType: "ringClosedDays" });
+    }
   }
 
   return normalized;
@@ -597,5 +617,28 @@ module.exports = {
           editCount: record.editCount || 0
         }))
     };
+  },
+
+  async getMyStats({ payload = {}, cloud, context }) {
+    const authContext = createAuthContext({ cloud, context });
+    const db = cloud.database();
+    const currentUser = await requireCurrentUser(db, authContext);
+    const groupId = normalizeId(payload.groupId, "groupId");
+    const { group, membership, targetConfig } = await loadCheckinContext({ db, currentUser, groupId });
+
+    const records = await findMany(db.collection("checkinRecords"), {
+      groupId,
+      membershipId: membership._id,
+      monthKey: group.monthKey
+    });
+
+    const stats = calculateMemberStats({
+      group,
+      membership,
+      targetConfig,
+      records: records.filter((r) => EFFECTIVE_RECORD_STATUSES.has(r.status))
+    });
+
+    return { stats };
   }
 };

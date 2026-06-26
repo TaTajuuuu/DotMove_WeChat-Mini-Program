@@ -1,39 +1,277 @@
-.state-card,
-.summary-card,
-.goal-row {
-  margin-top: 22rpx;
+/* 成员目标详情页样式 */
+.page {
+  min-height: 100vh;
+  padding: 0 36rpx 200rpx;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .22), transparent 300rpx),
+    linear-gradient(180deg, rgba(47, 125, 79, .2), rgba(246, 247, 243, 0) 520rpx),
+    #f6f7f3;
+}
+
+/* 导航栏 */
+.nav {
+  display: grid;
+  grid-template-columns: 68rpx 1fr 144rpx;
+  align-items: center;
+  height: 96rpx;
+}
+.back {
+  width: 68rpx;
+  height: 68rpx;
+  border: 1rpx solid rgba(32, 37, 31, .14);
+  border-radius: 34rpx;
+  background: rgba(255, 255, 255, .72);
+  position: relative;
+}
+.back::before {
+  content: "";
+  position: absolute;
+  left: 26rpx;
+  top: 20rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border-left: 4rpx solid #20251f;
+  border-bottom: 4rpx solid #20251f;
+  transform: rotate(45deg);
+}
+.nav-title {
+  font-size: 36rpx;
+  text-align: center;
+  color: #20251f;
+  font-weight: 800;
+}
+.capsule {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 144rpx;
+  height: 64rpx;
+  border: 1rpx solid rgba(32, 37, 31, .16);
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, .76);
+}
+.more-icon,
+.circle-icon { position: relative; width: 36rpx; height: 36rpx; }
+.circle-icon { border: 4rpx solid #20251f; border-radius: 50%; }
+.more-icon::before,
+.more-icon::after,
+.more-icon text {
+  content: "";
+  position: absolute;
+  top: 16rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #20251f;
+}
+.more-icon::before { left: 2rpx; }
+.more-icon::after { left: 14rpx; }
+
+/* 状态卡片 */
+.state-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200rpx;
+  margin-top: 32rpx;
   padding: 24rpx;
   border: 1rpx solid #dfe5d8;
   border-radius: 8rpx;
-  background: rgba(255, 255, 255, .94);
-}
-
-.summary-card text,
-.goal-name,
-.goal-meta,
-.error-text {
-  display: block;
-}
-
-.summary-card text {
-  margin-top: 8rpx;
-  color: #687064;
-  font-size: 26rpx;
-}
-
-.goal-name {
-  color: #20251f;
-  font-size: 28rpx;
-  font-weight: 800;
-}
-
-.goal-meta {
-  margin-top: 8rpx;
-  color: #687064;
-  font-size: 24rpx;
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .error-text {
   color: #ba5148;
+  font-size: 28rpx;
+}
+
+/* Hero 区域 */
+.hero {
+  padding: 36rpx 0 28rpx;
+}
+
+.hero-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  align-items: flex-start;
+}
+
+.hero-text {
+  flex: 1;
+}
+
+.hero-name {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 800;
+  line-height: 1.18;
+  color: #20251f;
+}
+
+.hero-subtitle {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 800;
+  line-height: 1.18;
+  color: #20251f;
+}
+
+.hero-desc {
+  display: block;
+  margin-top: 16rpx;
+  color: #687064;
   font-size: 26rpx;
+  line-height: 1.55;
+}
+
+/* 徽章 */
+.badge {
+  flex: 0 0 auto;
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.badge.status-ongoing {
+  border: 1rpx solid rgba(47, 125, 79, 0.2);
+  color: #23613e;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.badge.status-completed {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.badge.status-not-started {
+  color: #687064;
+  background: #e5e9df;
+}
+
+/* 卡片 */
+.card,
+.panel {
+  padding: 28rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16rpx 40rpx rgba(38, 54, 34, 0.06);
+}
+
+.panel {
+  margin-top: 24rpx;
+}
+
+/* 区域头部 */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #20251f;
+}
+
+.section-meta {
+  color: #8a9384;
+  font-size: 24rpx;
+}
+
+/* 标签 */
+.tag {
+  flex: 0 0 auto;
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.tag.good {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.tag.soft {
+  color: #5b420c;
+  background: #fae6af;
+}
+
+.tag.mute {
+  color: #687064;
+  background: #e5e9df;
+}
+
+.tag.creator {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.tag.member {
+  color: #23613e;
+  background: rgba(47, 125, 79, 0.1);
+}
+
+/* 字段列表 */
+.field-list {
+  display: grid;
+  gap: 20rpx;
+}
+
+.field {
+  padding: 22rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 16rpx;
+  background: #fbfcf8;
+}
+
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  align-items: center;
+}
+
+.field-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #20251f;
+}
+
+.field-value {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #23613e;
+  white-space: nowrap;
+}
+
+.coin-value {
+  font-weight: 900;
+}
+
+.field-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: #687064;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+/* 空状态 */
+.empty-card {
+  padding: 32rpx;
+  text-align: center;
+  color: #687064;
+  font-size: 28rpx;
 }

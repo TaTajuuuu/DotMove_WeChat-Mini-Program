@@ -1,53 +1,105 @@
-<view class="page join-page">
-  <text class="page-title">加入小组</text>
-  <text class="page-desc">通过邀请码预览小组，确认后设置组内昵称。</text>
-
-  <view class="form-card">
-    <text class="field-label">邀请码</text>
-    <view class="invite-row">
-      <input class="text-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
-      <button class="secondary-btn" bindtap="handlePreview">预览</button>
+<view class="page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">加入小组</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
     </view>
   </view>
 
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">加入小组\n设置你的昵称</text>
+        <text class="hero-desc">加入后，你可以继续设置本月目标。</text>
+      </view>
+      <view class="month-badge" wx:if="{{inviteCode}}">邀请码 {{inviteCode}}</view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
   <view wx:if="{{pageState === 'loading'}}" class="state-card">
-    <text>加载中...</text>
+    <text class="state-text">加载中...</text>
   </view>
 
-  <view wx:if="{{preview}}" class="preview-card">
-    <text class="group-name">{{preview.name}}</text>
-    <text class="group-meta">{{preview.status === 'active' ? '进行中' : '未开始'}} · {{preview.activeMemberCount}}/{{preview.maxMembers}}</text>
-    <text class="group-meta" wx:if="{{preview.creatorNickname}}">创建者：{{preview.creatorNickname}}</text>
-    <view class="notice">
-      <text>加入后，你的目标、打卡照片、备注和统计将对同组有效成员可见。</text>
+  <!-- 错误状态 -->
+  <view wx:elif="{{pageState === 'error'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+    <button class="secondary-btn" bindtap="handleRetry">重试</button>
+  </view>
+
+  <view wx:else>
+    <!-- 邀请码输入（无预览时显示） -->
+    <view wx:if="{{!preview}}" class="form-card">
+      <view class="label-row">
+        <text class="field-label">邀请码</text>
+      </view>
+      <view class="invite-row">
+        <input class="field-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
+        <button class="preview-btn" bindtap="handlePreview">预览</button>
+      </view>
     </view>
+
+    <!-- 小组预览卡片 -->
+    <view wx:if="{{preview}}" class="group-card">
+      <view class="card-top">
+        <view>
+          <text class="group-name">{{preview.name}}</text>
+          <text class="group-subtitle">创建者：{{preview.creatorNickname || '未知'}} · {{preview.entrySource || '邀请码入口'}}</text>
+        </view>
+        <text class="tag {{preview.status === 'active' ? 'active' : 'planned'}}">{{preview.status === 'active' ? '进行中' : '未开始'}}</text>
+      </view>
+
+      <view class="stats">
+        <view class="stat">
+          <text class="stat-value">{{preview.startDate || '--'}}</text>
+          <text class="stat-label">开始日期</text>
+        </view>
+        <view class="stat">
+          <text class="stat-value">{{preview.endDate || '--'}}</text>
+          <text class="stat-label">结束日期</text>
+        </view>
+        <view class="stat">
+          <text class="stat-value">{{preview.activeMemberCount}}人</text>
+          <text class="stat-label">当前成员</text>
+        </view>
+      </view>
+
+      <view class="privacy">
+        <text>你的目标及打卡情况将对同组有效成员可见。</text>
+      </view>
+    </view>
+
+    <!-- 昵称输入 -->
+    <view wx:if="{{preview && !preview.alreadyMember}}" class="form-card">
+      <view class="label-row">
+        <text class="field-label">小组内昵称</text>
+        <text class="helper">{{nickname.length}}/12</text>
+      </view>
+      <view class="input-wrap">
+        <input class="field-input" maxlength="12" placeholder="1-12 个字符" value="{{nickname}}" bindinput="handleNicknameInput" />
+        <text class="input-count">{{nickname.length}}/12</text>
+      </view>
+    </view>
+
+    <!-- 错误提示 -->
+    <view wx:if="{{errorMessage}}" class="notice danger">
+      <text>{{errorMessage}}</text>
+    </view>
+
+    <!-- 加入按钮 -->
+    <button
+      wx:if="{{preview}}"
+      class="primary-btn"
+      loading="{{submitting}}"
+      disabled="{{submitting}}"
+      bindtap="handleJoin"
+    >
+      {{preview.alreadyMember ? '已加入，进入小组' : '确认加入并设置目标'}}
+    </button>
   </view>
-
-  <view wx:if="{{preview && !preview.alreadyMember}}" class="form-card">
-    <text class="field-label">小组内昵称</text>
-    <input class="text-input" maxlength="12" placeholder="1-12 个字符" value="{{nickname}}" bindinput="handleNicknameInput" />
-    <text class="counter">{{nickname.length}}/12</text>
-  </view>
-
-  <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
-
-  <button
-    wx:if="{{preview && !preview.alreadyMember}}"
-    class="primary-btn"
-    loading="{{submitting}}"
-    disabled="{{submitting}}"
-    bindtap="handleJoin"
-  >
-    确认加入并设置目标
-  </button>
-
-  <button
-    wx:if="{{preview && preview.alreadyMember}}"
-    class="primary-btn"
-    loading="{{submitting}}"
-    disabled="{{submitting}}"
-    bindtap="handleJoin"
-  >
-    已加入，进入小组
-  </button>
+  <custom-tab-bar />
 </view>

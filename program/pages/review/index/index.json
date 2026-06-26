@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "月度回顾"
+  "navigationBarTitleText": "月度回顾",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

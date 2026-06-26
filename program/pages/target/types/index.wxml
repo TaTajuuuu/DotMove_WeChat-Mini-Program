@@ -1,26 +1,71 @@
 <view class="page target-page">
-  <text class="page-title">目标设置</text>
-  <text class="page-desc">{{canEdit ? '选择本月运动目标类型和一点币。' : '目标已锁定，仅可查看。'}}</text>
-
-  <view class="goal-grid">
-    <view
-      wx:for="{{goalTypes}}"
-      wx:key="key"
-      class="goal-card {{selectedGoalTypes.indexOf(item.key) >= 0 ? 'selected' : ''}}"
-      data-key="{{item.key}}"
-      bindtap="handleToggleGoal"
-    >
-      <text class="goal-name">{{item.name}}</text>
-      <text class="goal-desc">{{item.desc}}</text>
+  <!-- 导航栏 -->
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">目标类型</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
     </view>
   </view>
 
-  <view class="coin-card">
-    <text class="field-label">一点币</text>
-    <input class="coin-input" type="digit" disabled="{{!canEdit}}" value="{{coinValue}}" bindinput="handleCoinInput" />
-    <text class="hint">仅展示，不结算、不扣除、不返还。</text>
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">目标设置选择\n本月运动目标类型和一点币。</text>
+        <text class="hero-desc">仅未开始小组可修改整组目标配置。</text>
+      </view>
+      <view class="badge">{{targetStatusLabel}}</view>
+    </view>
   </view>
 
-  <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
-  <button class="primary-btn" disabled="{{!canEdit}}" bindtap="handleNext">下一步：设置目标值</button>
+  <!-- 目标类型 卡片 -->
+  <view class="card">
+    <view class="section-head">
+      <text class="section-title">目标类型</text>
+      <text class="section-meta">可多选</text>
+    </view>
+    <view class="goal-grid">
+      <view
+        wx:for="{{goalTypes}}"
+        wx:key="key"
+        class="goal-type {{item.selected ? 'selected' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="handleToggleGoal"
+      >
+        <text class="goal-name">{{item.name}}</text>
+        <text class="goal-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 一点币 面板 -->
+  <view class="panel">
+    <view class="section-head">
+      <text class="section-title">一点币</text>
+      <text class="section-meta">仅展示，不结算</text>
+    </view>
+    <view class="coin-row">
+      <input
+        class="coin-input"
+        type="digit"
+        value="{{coinValue}}"
+        placeholder="0"
+        bindinput="handleCoinInput"
+      />
+      <text class="coin-label">虚拟承诺值</text>
+    </view>
+
+    <!-- 错误提示 -->
+    <view wx:if="{{errorMessage}}" class="notice danger">
+      <text>{{errorMessage}}</text>
+    </view>
+
+    <!-- 下一步按钮 -->
+    <button class="primary-btn" bindtap="handleNext">下一步：设置目标值</button>
+  </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

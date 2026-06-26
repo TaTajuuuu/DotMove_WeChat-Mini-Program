@@ -1,10 +1,31 @@
+/* ============================================
+   一点运动 - 全局样式（Design System）
+   prototype 设计规范
+   ============================================ */
+
+/* CSS 变量定义 */
 page {
+  /* 配色方案（严格匹配原型） */
+  --page: #f6f7f3;
+  --surface: #ffffff;
+  --surface-soft: #f0f4e8;
+  --ink: #20251f;
+  --muted: #687064;
+  --quiet: #8a9384;
+  --line: #dfe5d8;
+  --brand: #2f7d4f;
+  --brand-dark: #23613e;
+  --accent: #f0b441;
+  --danger: #ba5148;
+
+  /* 基础样式 */
   min-height: 100%;
-  color: #20251f;
-  background: #f6f7f3;
+  color: var(--ink);
+  background: var(--page);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
+/* 重置 box-sizing */
 view,
 text,
 button,
@@ -15,52 +36,13 @@ textarea {
 
 button {
   font: inherit;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  line-height: inherit;
 }
 
-.page {
-  min-height: 100vh;
-  padding: 40rpx 32rpx 72rpx;
-  background:
-    radial-gradient(circle at 18% 6%, rgba(240, 180, 65, .18), transparent 220rpx),
-    linear-gradient(180deg, rgba(47, 125, 79, .16), rgba(246, 247, 243, 0) 360rpx),
-    #f6f7f3;
-}
-
-.page-title {
-  display: block;
-  font-size: 48rpx;
-  font-weight: 800;
-  line-height: 1.18;
-  letter-spacing: 0;
-}
-
-.page-desc {
-  display: block;
-  margin-top: 16rpx;
-  color: #687064;
-  font-size: 28rpx;
-  line-height: 1.55;
-}
-
-.placeholder-card {
-  margin-top: 32rpx;
-  padding: 28rpx;
-  border: 1rpx solid #dfe5d8;
-  border-radius: 8rpx;
-  background: rgba(255, 255, 255, .92);
-}
-
-.placeholder-label {
-  display: block;
-  color: #23613e;
-  font-size: 24rpx;
-  font-weight: 800;
-}
-
-.placeholder-text {
-  display: block;
-  margin-top: 12rpx;
-  color: #687064;
-  font-size: 26rpx;
-  line-height: 1.55;
+button::after {
+  border: none;
 }

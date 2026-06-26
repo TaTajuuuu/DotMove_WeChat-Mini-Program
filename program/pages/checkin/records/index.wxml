@@ -1,20 +1,124 @@
-<view class="page records-page">
-  <text class="page-title">打卡记录</text>
-  <text class="page-desc">查看本人打卡、补卡和已编辑记录。</text>
-
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无记录。</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
-
-  <view wx:else>
-    <view wx:for="{{records}}" wx:key="checkinRecordId" class="record-card">
-      <view class="record-head">
-        <text class="record-date">{{item.sportDate}}</text>
-        <text class="tag">{{item.isMakeup ? '补卡' : '打卡'}}{{item.status === 'edited' ? ' · 已编辑' : ''}}</text>
-      </view>
-      <text class="record-meta">热量 {{item.metrics.calories || '--'}} kcal · 时长 {{item.metrics.durationMinutes || '--'}} 分钟</text>
-      <text class="record-meta">照片 {{item.photos.length}} 张 · 修改 {{item.editCount}} 次</text>
-      <text wx:if="{{item.remark}}" class="record-remark">{{item.remark}}</text>
+<view class="page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">打卡记录</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
     </view>
   </view>
+
+  <!-- Hero -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">运动记录\n打卡历史</text>
+        <text class="hero-desc">查看自己的有效打卡和补卡记录。</text>
+      </view>
+      <view class="badge">{{monthLabel}}</view>
+    </view>
+  </view>
+
+  <!-- 本月概览 -->
+  <view class="card" wx:if="{{pageState === 'ready'}}">
+    <view class="section-head">
+      <text class="section-title">本月概览</text>
+      <text class="tag good" wx:if="{{displayStats.completed}}">目标已完成</text>
+      <text class="tag warn" wx:elif="{{displayStats.totalRecords > 0}}">进行中</text>
+    </view>
+
+    <!-- 关键数值 -->
+    <view class="field-list">
+      <view class="field" wx:if="{{displayStats.totalCalories > 0}}">
+        <view class="field-row">
+          <text class="field-label">累计热量</text>
+          <text class="field-value">{{displayStats.totalCalories}} kcal</text>
+        </view>
+      </view>
+      <view class="field" wx:if="{{displayStats.totalDuration > 0}}">
+        <view class="field-row">
+          <text class="field-label">累计时长</text>
+          <text class="field-value">{{displayStats.totalDuration}} 分钟</text>
+        </view>
+      </view>
+      <view class="field">
+        <view class="field-row">
+          <text class="field-label">有效打卡日</text>
+          <text class="field-value">{{displayStats.exerciseDays}} 天</text>
+        </view>
+        <text class="field-desc">当日累计热量达标才算有效打卡日。</text>
+      </view>
+      <view class="field" wx:if="{{displayStats.exerciseTimes > 0}}">
+        <view class="field-row">
+          <text class="field-label">有效运动次数</text>
+          <text class="field-value">{{displayStats.exerciseTimes}} 次</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 各目标进度条 -->
+    <view class="progress-section" wx:if="{{displayStats.targetProgressList.length > 0}}">
+      <view class="progress-item" wx:for="{{displayStats.targetProgressList}}" wx:key="goalType">
+        <view class="progress-label">
+          <text>{{item.goalTypeLabel || item.goalType}}</text>
+          <text>{{item.doneValue}}{{item.unit || ''}} / {{item.targetValue}}{{item.unit || ''}}</text>
+        </view>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{item.progress}}%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录筛选 -->
+  <view class="panel" wx:if="{{pageState === 'ready' && records.length > 0}}">
+    <view class="section-head">
+      <text class="section-title">记录筛选</text>
+      <text class="section-meta">{{filterLabel}}</text>
+    </view>
+    <view class="date-grid">
+      <view class="date-card {{filterType === 'all' ? 'selected' : ''}}" bindtap="handleFilterAll">
+        <text class="date-name">全部</text>
+        <text class="date-sub">有效 / 已编辑</text>
+      </view>
+      <view class="date-card {{filterType === 'makeup' ? 'selected' : ''}}" bindtap="handleFilterMakeup">
+        <text class="date-name">补卡</text>
+        <text class="date-sub">仅补卡</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="panel" wx:if="{{pageState === 'ready'}}">
+    <view class="section-head">
+      <text class="section-title">记录列表</text>
+      <text class="section-meta">最近 {{filteredRecords.length}} 条</text>
+    </view>
+    <view class="field-list" wx:if="{{filteredRecords.length > 0}}">
+      <view class="field record-item" wx:for="{{filteredRecords}}" wx:key="checkinRecordId" data-id="{{item.checkinRecordId}}">
+        <view class="field-row">
+          <text class="record-date">{{item.displayDate}}</text>
+          <text class="record-calories" wx:if="{{item.calories > 0}}">{{item.calories}} kcal</text>
+        </view>
+        <text class="record-detail">{{item.duration > 0 ? (item.duration + ' 分钟') : ''}}{{item.ringsClosed ? ' · 三环闭合' : ''}}{{item.photoCount > 0 ? (' · ' + item.photoCount + ' 张照片') : ''}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty-hint">
+      <text>{{filterType === 'makeup' ? '暂无补卡记录' : '暂无记录'}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="card loading-card" wx:if="{{pageState === 'loading'}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view class="notice error-notice" wx:if="{{errorMessage && pageState !== 'loading'}}">
+    <text>{{errorMessage}}</text>
+  </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

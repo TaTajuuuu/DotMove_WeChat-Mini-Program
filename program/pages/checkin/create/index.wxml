@@ -1,40 +1,128 @@
-<view class="page checkin-page">
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
-  <view wx:else>
-    <text class="page-title">今日打卡</text>
-    <text class="page-desc">按已锁定目标填写今日运动数据。</text>
+<view class="page">
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">{{groupId ? '打卡' : '选择小组'}}</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
+    </view>
+  </view>
 
-    <view class="field-card">
-      <text class="field-label">热量 kcal</text>
-      <input class="number-input" type="digit" data-field="calories" bindinput="handleMetricInput" />
-      <text class="field-label sub">运动时长 分钟</text>
-      <input class="number-input" type="digit" data-field="durationMinutes" bindinput="handleMetricInput" />
-      <text class="field-label sub">跑步 km</text>
-      <input class="number-input" type="digit" data-field="runningDistanceKm" bindinput="handleMetricInput" />
-      <text class="field-label sub">骑行 km</text>
-      <input class="number-input" type="digit" data-field="cyclingDistanceKm" bindinput="handleMetricInput" />
-      <checkbox-group bindchange="handleRingChange">
-        <label class="checkbox-label"><checkbox value="ringClosed" /> 三环闭合</label>
-      </checkbox-group>
+  <!-- 状态 A：选择小组 -->
+  <view wx:if="{{!groupId}}">
+    <view class="hero">
+      <text class="hero-heading">选择打卡小组</text>
+      <text class="hero-desc">选择今天运动记录归属的小组。</text>
     </view>
 
-    <view class="field-card">
-      <button class="secondary-btn" bindtap="choosePhotos">选择照片</button>
-      <text class="hint">已选择 {{photos.length}} 张，需 1 至 3 张静态图片。</text>
-      <view wx:if="{{photos.length > 0}}" class="photo-preview-list">
-        <view wx:for="{{photos}}" wx:key="index" class="photo-preview-item">
-          <image class="photo-preview-img" src="{{item.tempFilePath}}" mode="aspectFill" />
-          <view class="photo-preview-remove" data-index="{{index}}" bindtap="removePhoto">×</view>
+    <view wx:if="{{loading}}" class="state-card">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:if="{{!loading && groups.length > 0}}" class="group-list">
+      <view wx:for="{{groups}}" wx:key="groupId"
+        class="group-card {{selectedIndex === index ? 'active' : ''}}"
+        bindtap="handleSelectGroup" data-index="{{index}}">
+        <view class="group-card-head">
+          <text class="group-card-name">{{item.groupName}}</text>
+          <text class="group-card-tag {{item.status}}">{{item.statusText}}</text>
+        </view>
+        <view class="group-card-row">
+          <view class="mini-bar"><view class="mini-fill" style="width:{{item.progress}}%"></view></view>
+          <text class="group-card-num">{{item.memberCount}} 人</text>
+        </view>
+        <text class="group-card-hint">点击选择此小组</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!loading && groups.length === 0}}" class="empty-state">
+      <text class="empty-text">还没有加入任何小组</text>
+      <button class="primary-btn small" bindtap="handleGoCreate">创建小组</button>
+      <button class="secondary-line-btn" bindtap="handleGoJoin">加入小组</button>
+    </view>
+  </view>
+
+  <!-- 状态 B：打卡表单 -->
+  <view wx:else>
+    <view class="hero compact">
+      <view class="hero-row">
+        <view>
+          <text class="hero-heading">今日运动\n打卡记录</text>
+          <text class="hero-desc">记录今天的运动数据和照片。</text>
+        </view>
+        <view class="badge" bindtap="handleChangeGroup">
+          <text>{{groupName}}</text>
+          <text class="badge-alt">切换</text>
         </view>
       </view>
     </view>
 
-    <view class="field-card">
-      <textarea class="remark-input" maxlength="100" placeholder="备注运动状态，最多 100 字" bindinput="handleRemarkInput" />
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">今日记录</text>
+        <text class="tag good">进行中</text>
+      </view>
+      <view class="field-list">
+        <view class="field-item">
+          <view class="field-row">
+            <text class="field-label">运动日期</text>
+            <text class="field-val">{{todayLabel}}</text>
+          </view>
+          <text class="field-desc">当天打卡不可选择历史日期。</text>
+        </view>
+        <view class="field-item" wx:for="{{goalFields}}" wx:key="key">
+          <view class="field-row">
+            <text class="field-label">{{item.label}}</text>
+            <input class="field-input" type="digit" placeholder="--" value="{{fieldValues[item.key]}}" data-key="{{item.key}}" bindinput="handleFieldInput"/>
+            <text class="field-unit">{{item.unit}}</text>
+          </view>
+          <text class="field-desc">{{item.desc}}</text>
+        </view>
+      </view>
     </view>
 
-    <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+    <view class="panel" wx:if="{{showRings}}">
+      <view class="toggle-row">
+        <view class="toggle-info">
+          <text class="toggle-title">三环闭合</text>
+          <text class="toggle-desc">今天是否成功闭合三环</text>
+        </view>
+        <view class="switch {{ringsClosed ? '' : 'off'}}" bindtap="handleToggleRings"></view>
+      </view>
+    </view>
+
+    <view class="panel">
+      <view class="section-head">
+        <text class="section-title">运动照片</text>
+        <text class="section-meta">{{photos.length}}/3</text>
+      </view>
+      <view class="photo-grid">
+        <block wx:for="{{photos}}" wx:key="*this">
+          <view class="photo-slot filled" data-index="{{index}}" bindtap="handlePreviewPhoto">
+            <text>已上传</text>
+          </view>
+        </block>
+        <view wx:if="{{photos.length < 3}}" class="photo-slot" bindtap="handleChoosePhoto">
+          <text>添加照片</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel">
+      <view class="field-row">
+        <text class="field-label">备注运动状态</text>
+        <text class="field-meta">{{remark.length}}/100</text>
+      </view>
+      <input class="remark-input" maxlength="100" placeholder="选填，记录运动感受..." value="{{remark}}" bindinput="handleRemarkInput"/>
+    </view>
+
+    <view wx:if="{{errorMessage}}" class="notice">
+      <text>{{errorMessage}}</text>
+    </view>
+
     <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">提交打卡</button>
+    <text class="secondary-link" bindtap="handleGoMakeup">需要补交记录？</text>
   </view>
+
+  <custom-tab-bar/>
 </view>

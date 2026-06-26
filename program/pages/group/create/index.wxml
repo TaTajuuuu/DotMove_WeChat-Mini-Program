@@ -1,35 +1,96 @@
-<view class="page create-page">
-  <text class="page-title">创建小组</text>
-  <text class="page-desc">选择本月或下月，填写小组名称后生成邀请码。</text>
-
-  <view class="type-row">
-    <button class="type-btn {{groupType === 'currentMonth' ? 'active' : ''}}" data-type="currentMonth" bindtap="handleTypeChange">
-      本月小组
-    </button>
-    <button class="type-btn {{groupType === 'nextMonth' ? 'active' : ''}}" data-type="nextMonth" bindtap="handleTypeChange">
-      下月小组
-    </button>
+<view class="page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">创建小组</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
+    </view>
   </view>
 
-  <view class="notice">
-    <text wx:if="{{groupType === 'currentMonth'}}">本月小组创建后立即开始，成员设置目标后即可打卡。</text>
-    <text wx:else>下月小组创建后为未开始状态，开始前可设置昵称和目标。</text>
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">发起一个\n月度运动约定</text>
+        <text class="hero-desc">选择本月或下月，填写小组名称。</text>
+      </view>
+      <view class="month-badge">上限 50 人</view>
+    </view>
   </view>
 
+  <!-- 表单卡片 -->
   <view class="form-card">
-    <text class="field-label">小组名称</text>
-    <input class="name-input" maxlength="20" placeholder="1-20 个字符" value="{{name}}" bindinput="handleNameInput" />
-    <text class="counter">{{name.length}}/20</text>
+    <!-- 周期选择 -->
+    <view class="field-block">
+      <view class="label-row">
+        <text class="field-label">创建周期</text>
+        <text class="helper"></text>
+      </view>
+      <view class="period-grid">
+        <view class="period {{groupType === 'currentMonth' ? 'active' : ''}}" bindtap="handleTypeChange" data-type="currentMonth">
+          <view class="topline">
+            <text class="topline-name">本月小组</text>
+            <view class="radio {{groupType === 'currentMonth' ? 'checked' : ''}}"></view>
+          </view>
+          <text class="period-date">{{currentMonthLabel}}</text>
+          <text class="period-desc">{{currentMonthRange}}</text>
+        </view>
+        <view class="period {{groupType === 'nextMonth' ? 'active' : ''}}" bindtap="handleTypeChange" data-type="nextMonth">
+          <view class="topline">
+            <text class="topline-name">下月小组</text>
+            <view class="radio {{groupType === 'nextMonth' ? 'checked' : ''}}"></view>
+          </view>
+          <text class="period-date">{{nextMonthLabel}}</text>
+          <text class="period-desc">{{nextMonthRange}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 小组名称 -->
+    <view class="field-block">
+      <view class="label-row">
+        <text class="field-label">小组名称</text>
+        <text class="helper">1-20 个字符</text>
+      </view>
+      <view class="input-wrap">
+        <input class="field-input" maxlength="20" placeholder="给小组起个名字" value="{{name}}" bindinput="handleNameInput" />
+        <text class="input-count">{{name.length}}/20</text>
+      </view>
+    </view>
+
+    <!-- 提示 -->
+    <view wx:if="{{groupType === 'nextMonth'}}" class="notice">
+      <text>下月小组开始前不可打卡，成员可设置昵称和目标。</text>
+    </view>
+
+    <!-- 错误提示 -->
+    <view wx:if="{{errorMessage}}" class="notice danger">
+      <text>{{errorMessage}}</text>
+    </view>
   </view>
 
-  <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+  <!-- 创建按钮 -->
+  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleCreate">创建并生成邀请</button>
 
-  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleCreate">创建小组</button>
-
+  <!-- 创建成功 -->
   <view wx:if="{{createdGroup}}" class="success-card">
-    <text class="success-title">创建成功</text>
-    <text class="success-desc">邀请码：{{createdGroup.inviteCode}}</text>
-    <text class="success-desc">{{createdGroup.status === 'active' ? '小组进行中' : '小组未开始'}}</text>
-    <button class="secondary-btn" bindtap="handleOpenGroup">进入小组</button>
+    <view class="success-head">
+      <view>
+        <text class="success-title">创建成功</text>
+        <text class="success-helper">下一步：设置小组运动目标，或先邀请成员。</text>
+      </view>
+      <view class="tag {{createdGroup.status === 'active' ? 'active' : ''}}">{{createdGroup.status === 'active' ? '进行中' : '未开始'}}</view>
+    </view>
+    <view class="invite-code">{{createdGroup.inviteCode}}</view>
+    <button class="primary-btn" bindtap="handleSetTarget" style="margin-top: 28rpx;">去设置目标</button>
+    <view class="secondary-actions">
+      <button class="ghost-btn" bindtap="handleShareToChat">微信群分享</button>
+      <button class="ghost-btn" bindtap="handleCopyCode">复制邀请码</button>
+    </view>
   </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

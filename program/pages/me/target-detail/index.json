@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "我的目标"
+  "navigationBarTitleText": "我的目标",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

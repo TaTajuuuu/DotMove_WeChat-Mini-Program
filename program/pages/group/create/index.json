@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "创建小组"
+  "navigationBarTitleText": "创建小组",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

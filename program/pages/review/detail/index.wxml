@@ -14,4 +14,5 @@
       <text class="member-meta">{{item.role === 'creator' ? '创建者' : '成员'}} · {{item.completed ? '已完成' : '未完成'}} · {{item.completedAt || '--'}}</text>
     </view>
   </view>
+  <custom-tab-bar />
 </view>

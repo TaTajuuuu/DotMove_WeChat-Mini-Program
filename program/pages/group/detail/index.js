@@ -9,7 +9,8 @@ Page({
     errorMessage: "",
     group: null,
     members: [],
-    statsSummary: null
+    statsSummary: null,
+    myTargetStatus: "" // 'unset' | 'set' | ''
   },
 
   onLoad(options = {}) {
@@ -18,6 +19,9 @@ Page({
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
     if (this.data.groupId) {
       this.loadDetail(this.data.groupId);
     }
@@ -32,11 +36,42 @@ Page({
     try {
       const result = await groupService.getGroupDetail({ groupId });
       const data = result.data || {};
+      const group = data.group || {};
+      const members = data.members || [];
+      const currentMembershipId = (data.currentMembership || {}).membershipId || "";
+
+      // 从成员列表里找到当前用户，判断目标状态
+      let myTargetStatus = "";
+      if (currentMembershipId) {
+        const me = members.find((m) => m.membershipId === currentMembershipId);
+        if (me && me.targetSummary) {
+          myTargetStatus = me.targetSummary.status === "unset" ? "unset" : "set";
+        } else {
+          myTargetStatus = "unset";
+        }
+      }
+
+      // 格式化日期字段（API 返回 lifecycleStartAt/lifecycleEndAt）
+      const fmtDate = (raw) => {
+        if (!raw) return "";
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return String(raw);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${dd}`;
+      };
+
       this.setData({
         pageState: PageState.READY,
-        group: data.group,
-        members: data.members || [],
-        statsSummary: data.statsSummary
+        group: {
+          ...group,
+          startDate: fmtDate(group.lifecycleStartAt),
+          endDate: fmtDate(group.lifecycleEndAt)
+        },
+        members,
+        statsSummary: data.statsSummary,
+        myTargetStatus
       });
     } catch (error) {
       this.setData({
@@ -44,6 +79,10 @@ Page({
         errorMessage: error.message || "加载失败，请稍后重试。"
       });
     }
+  },
+
+  handleSetTarget() {
+    wx.navigateTo({ url: `${routes.targetTypes}?groupId=${this.data.groupId}` });
   },
 
   handleManage() {

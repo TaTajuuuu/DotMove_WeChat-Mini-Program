@@ -2,22 +2,63 @@
   <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
   <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
   <view wx:else>
-    <text class="page-title">我的目标详情</text>
-    <text class="page-desc">{{memberStats.completed ? '已完成' : memberStats.overallProgress === null ? '未设置目标' : memberStats.overallProgress + '%'}}</text>
-
-    <view class="summary-card">
-      <text>一点币：{{memberStats.coinValue}}</text>
-      <text>完成日期：{{memberStats.completedAt || '--'}}</text>
-      <text>有效记录：{{memberStats.recordSummary.validRecordCount}}</text>
+    <!-- 导航栏 -->
+    <view class="nav-bar">
+      <view class="back-btn" bindtap="handleBack"></view>
+      <text class="nav-title">目标详情</text>
+      <view class="capsule-placeholder"></view>
     </view>
 
-    <view wx:if="{{!memberStats.targetProgressList.length}}" class="state-card"><text>未设置目标。</text></view>
-    <view wx:for="{{memberStats.targetProgressList}}" wx:key="goalType" class="goal-row">
-      <text class="goal-name">{{item.goalType}}</text>
-      <text class="goal-meta">{{item.doneValue}} / {{item.targetValue}} · {{item.progress}}%</text>
-      <text class="goal-meta">达成日期：{{item.achievedAt || '--'}}</text>
+    <!-- Hero -->
+    <view class="hero">
+      <view class="hero-left">
+        <text class="hero-title">我的目标</text>
+        <text class="hero-subtitle">完成详情</text>
+        <text class="hero-desc">切换小组查看不同目标完成详情。</text>
+      </view>
+      <view class="badge" wx:if="{{groupName}}">{{groupName}}</view>
+    </view>
+
+    <!-- 目标进度面板 -->
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">目标进度</text>
+        <text class="tag soft">{{overallProgress}}%</text>
+      </view>
+
+      <!-- 一点币 -->
+      <view class="coin-row" wx:if="{{memberStats}}">
+        <text class="coin-label">一点币</text>
+        <text class="coin-value">{{memberStats.coinValue || 0}}</text>
+        <text class="coin-unit">枚</text>
+      </view>
+
+      <!-- 统计摘要 -->
+      <view class="summary-row" wx:if="{{memberStats && memberStats.recordSummary}}">
+        <text class="summary-item">有效记录：<text class="summary-num">{{memberStats.recordSummary.validRecordCount || 0}}</text></text>
+        <text class="summary-item" wx:if="{{memberStats.completedAt}}">达成：<text class="summary-num">{{memberStats.completedAt}}</text></text>
+      </view>
+
+      <!-- 指标卡片列表 -->
+      <view class="metric-list" wx:if="{{progressItems.length}}">
+        <view class="metric-card" wx:for="{{progressItems}}" wx:key="goalType">
+          <view class="metric-head">
+            <text class="metric-name">{{item.label}}</text>
+            <text class="metric-value">{{item.doneText}}</text>
+          </view>
+          <view class="progress-line">
+            <view class="progress-fill" style="width: {{item.progress}}%"></view>
+          </view>
+          <text class="metric-hint">达成日期：{{item.achievedAt || '--'}}</text>
+        </view>
+      </view>
+
+      <view class="empty-hint" wx:if="{{!progressItems.length}}">
+        <text>未设置目标，前往小组设置本月运动目标。</text>
+      </view>
     </view>
 
     <button class="primary-btn" bindtap="handleOpenRecords">查看打卡记录</button>
   </view>
+  <custom-tab-bar />
 </view>

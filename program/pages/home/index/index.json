@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "一点运动"
+  "navigationBarTitleText": "一点运动",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

@@ -1,61 +1,79 @@
 const { calculateGroupStats } = require("../common/stats");
 
-async function findOne(collection, query) {
-  const result = await collection.where(query).limit(1).get();
-  return result.data && result.data.length ? result.data[0] : null;
-}
-
 async function findMany(collection, query) {
   const result = await collection.where(query).get();
   return result.data || [];
 }
 
-function isDue(startOrEndAt, now, mode) {
-  const time = new Date(startOrEndAt).getTime();
-  return mode === "start" ? now.getTime() >= time : now.getTime() > time;
-}
-
-function progressSnapshotFromList(targetProgressList) {
-  const snapshot = {
-    calorieTotal: null,
-    durationTotal: null,
-    exerciseDays: null,
-    exerciseTimes: null,
-    runningDistance: null,
-    cyclingDistance: null,
-    ringClosedDays: null
-  };
-
-  for (const item of targetProgressList || []) {
-    snapshot[item.goalType] = item;
-  }
-
-  return snapshot;
+async function findOne(collection, query) {
+  const result = await collection.where(query).limit(1).get();
+  return result.data && result.data.length ? result.data[0] : null;
 }
 
 async function writeAuditLog(db, data) {
   await db.collection("auditLogs").add({ data });
 }
 
-async function lockSetTargets(db, group, now) {
-  const setTargets = await findMany(db.collection("targetConfigs"), {
-    groupId: group._id,
-    monthKey: group.monthKey,
+function shouldActivate(group, now) {
+  return group.status === "upcoming" && new Date(group.lifecycleStartAt).getTime() <= now.getTime();
+}
+
+function shouldArchive(group, now) {
+  return group.status === "active" && new Date(group.lifecycleEndAt).getTime() < now.getTime();
+}
+
+function snapshotTargetConfig(targetConfig) {
+  if (!targetConfig) {
+    return {
+      status: "unset",
+      coinValue: 0,
+      selectedGoalTypes: [],
+      goals: {}
+    };
+  }
+
+  return {
+    targetConfigId: targetConfig._id,
+    status: targetConfig.status || "unset",
+    coinValue: Number(targetConfig.coinValue || 0),
+    selectedGoalTypes: Array.isArray(targetConfig.selectedGoalTypes) ? targetConfig.selectedGoalTypes : [],
+    goals: targetConfig.goals || {},
+    savedAt: targetConfig.savedAt || null,
+    lockedAt: targetConfig.lockedAt || null
+  };
+}
+
+function snapshotMemberProgress(memberStats) {
+  return {
+    targetProgressList: memberStats.targetProgressList || [],
+    overallProgress: memberStats.overallProgress,
+    recordSummary: memberStats.recordSummary || {},
+    progressText: memberStats.progressText || "",
+    completed: Boolean(memberStats.completed),
+    completedAt: memberStats.completedAt || null,
+    incompleteSummary: memberStats.incompleteSummary || ""
+  };
+}
+
+async function lockSetTargetConfigs(db, groupId, monthKey, now, actor) {
+  const targetConfigs = await findMany(db.collection("targetConfigs"), {
+    groupId,
+    monthKey,
     status: "set"
   });
 
-  for (const targetConfig of setTargets) {
+  for (const targetConfig of targetConfigs) {
     await db.collection("targetConfigs").doc(targetConfig._id).update({
       data: {
         status: "locked",
         lockedAt: now,
         updatedAt: now,
-        updatedBy: "system"
+        updatedBy: actor
       }
     });
   }
 
-  return setTargets.length;
+  return targetConfigs.length;
 }
 
 async function archiveGroup(db, group, now, traceId) {
@@ -65,22 +83,7 @@ async function archiveGroup(db, group, now, traceId) {
   });
 
   if (existingSnapshot) {
-    if (group.status !== "archived") {
-      await db.collection("groups").doc(group._id).update({
-        data: {
-          status: "archived",
-          inviteStatus: "disabled",
-          archivedAt: existingSnapshot.archivedAt || now,
-          updatedAt: now,
-          updatedBy: "system"
-        }
-      });
-    }
-    return {
-      groupId: group._id,
-      archiveSnapshotId: existingSnapshot._id,
-      skipped: true
-    };
+    return { skipped: true, reason: "snapshotExists", archiveSnapshotId: existingSnapshot._id };
   }
 
   const activeMemberships = await findMany(db.collection("memberships"), {
@@ -101,9 +104,11 @@ async function archiveGroup(db, group, now, traceId) {
     targetConfigs,
     records
   });
+  const targetByMembershipId = new Map(targetConfigs.map((targetConfig) => [targetConfig.membershipId, targetConfig]));
   const visibleMembershipIds = activeMemberships.map((membership) => membership._id);
   const visibleUserIds = activeMemberships.map((membership) => membership.userId);
-  const archiveAddResult = await db.collection("archiveSnapshots").add({
+
+  const archiveResult = await db.collection("archiveSnapshots").add({
     data: {
       groupId: group._id,
       monthKey: group.monthKey,
@@ -124,8 +129,7 @@ async function archiveGroup(db, group, now, traceId) {
       updatedBy: "system"
     }
   });
-  const archiveSnapshotId = archiveAddResult._id;
-  const targetByMembershipId = new Map(targetConfigs.map((targetConfig) => [targetConfig.membershipId, targetConfig]));
+  const archiveSnapshotId = archiveResult._id;
 
   for (const memberStats of stats.members) {
     const targetConfig = targetByMembershipId.get(memberStats.membershipId);
@@ -138,16 +142,12 @@ async function archiveGroup(db, group, now, traceId) {
         monthKey: group.monthKey,
         nickname: memberStats.nickname,
         role: memberStats.role,
-        targetConfigSnapshot: {
-          coinValue: targetConfig ? Number(targetConfig.coinValue || 0) : 0,
-          selectedGoalTypes: targetConfig && Array.isArray(targetConfig.selectedGoalTypes) ? targetConfig.selectedGoalTypes : [],
-          goals: targetConfig ? targetConfig.goals || {} : {}
-        },
-        progressSnapshot: progressSnapshotFromList(memberStats.targetProgressList),
+        targetConfigSnapshot: snapshotTargetConfig(targetConfig),
+        progressSnapshot: snapshotMemberProgress(memberStats),
         overallProgress: memberStats.overallProgress,
-        completed: memberStats.completed,
-        completedAt: memberStats.completedAt,
-        incompleteSummary: memberStats.incompleteSummary,
+        completed: Boolean(memberStats.completed),
+        completedAt: memberStats.completedAt || null,
+        incompleteSummary: memberStats.incompleteSummary || "",
         createdAt: now,
         updatedAt: now,
         createdBy: "system",
@@ -155,6 +155,8 @@ async function archiveGroup(db, group, now, traceId) {
       }
     });
   }
+
+  const lockedTargetCount = await lockSetTargetConfigs(db, group._id, group.monthKey, now, "system");
 
   await db.collection("groups").doc(group._id).update({
     data: {
@@ -169,6 +171,7 @@ async function archiveGroup(db, group, now, traceId) {
   await writeAuditLog(db, {
     actionType: "GROUP_ARCHIVE",
     actorUserId: "system",
+    actorMembershipId: "",
     targetType: "group",
     targetId: group._id,
     groupId: group._id,
@@ -178,15 +181,18 @@ async function archiveGroup(db, group, now, traceId) {
       archiveSnapshotId,
       activeMemberCount: stats.groupSummary.activeMemberCount,
       completedMemberCount: stats.groupSummary.completedMemberCount,
-      groupCompletionRate: stats.groupSummary.groupCompletionRate
+      lockedTargetCount
     },
     createdAt: now
   });
 
   return {
+    skipped: false,
     groupId: group._id,
     archiveSnapshotId,
-    skipped: false
+    activeMemberCount: stats.groupSummary.activeMemberCount,
+    completedMemberCount: stats.groupSummary.completedMemberCount,
+    lockedTargetCount
   };
 }
 
@@ -195,14 +201,11 @@ module.exports = {
     const db = cloud.database();
     const now = new Date();
     const upcomingGroups = await findMany(db.collection("groups"), { status: "upcoming" });
-    const activated = [];
+    const candidates = upcomingGroups.filter((group) => shouldActivate(group, now));
+    const activatedGroups = [];
 
-    for (const group of upcomingGroups) {
-      if (!isDue(group.lifecycleStartAt, now, "start")) {
-        continue;
-      }
-
-      const lockedTargetCount = await lockSetTargets(db, group, now);
+    for (const group of candidates) {
+      const lockedTargetCount = await lockSetTargetConfigs(db, group._id, group.monthKey, now, "system");
       await db.collection("groups").doc(group._id).update({
         data: {
           status: "active",
@@ -213,20 +216,22 @@ module.exports = {
       await writeAuditLog(db, {
         actionType: "GROUP_ACTIVATE",
         actorUserId: "system",
+        actorMembershipId: "",
         targetType: "group",
         targetId: group._id,
         groupId: group._id,
         traceId: traceId || "",
         result: "success",
-        resultData: { lockedTargetCount },
+        resultData: { groupId: group._id, lockedTargetCount },
         createdAt: now
       });
-      activated.push({ groupId: group._id, lockedTargetCount });
+      activatedGroups.push({ groupId: group._id, lockedTargetCount });
     }
 
     return {
-      activatedCount: activated.length,
-      activated
+      activatedCount: activatedGroups.length,
+      activatedGroups,
+      checkedCount: upcomingGroups.length
     };
   },
 
@@ -234,27 +239,25 @@ module.exports = {
     const db = cloud.database();
     const now = new Date();
     const activeGroups = await findMany(db.collection("groups"), { status: "active" });
-    const archived = [];
-    const skipped = [];
+    const candidates = activeGroups.filter((group) => shouldArchive(group, now));
+    const archivedGroups = [];
+    const skippedGroups = [];
 
-    for (const group of activeGroups) {
-      if (group.status === "dissolved" || !isDue(group.lifecycleEndAt, now, "end")) {
-        continue;
-      }
-
+    for (const group of candidates) {
       const result = await archiveGroup(db, group, now, traceId);
       if (result.skipped) {
-        skipped.push(result);
+        skippedGroups.push({ groupId: group._id, reason: result.reason, archiveSnapshotId: result.archiveSnapshotId });
       } else {
-        archived.push(result);
+        archivedGroups.push(result);
       }
     }
 
     return {
-      archivedCount: archived.length,
-      skippedCount: skipped.length,
-      archived,
-      skipped
+      archivedCount: archivedGroups.length,
+      skippedCount: skippedGroups.length,
+      checkedCount: activeGroups.length,
+      archivedGroups,
+      skippedGroups
     };
   }
 };

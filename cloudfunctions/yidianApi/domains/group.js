@@ -5,7 +5,7 @@ const {
   getNextMonthLifecycle,
   resolveGroupStatusByLifecycle
 } = require("../common/date");
-const { AppError, ErrorCodes, notImplemented } = require("../common/errors");
+const { AppError, ErrorCodes } = require("../common/errors");
 const { calculateGroupStats } = require("../common/stats");
 
 const MAX_MEMBERS = 50;

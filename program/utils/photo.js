@@ -23,7 +23,9 @@ function uploadCheckinPhotos({ photos, groupId, userId }) {
       cloudPath,
       filePath: photo.tempFilePath
     }).then((res) => ({
+      fileId: res.fileID,
       url: res.fileID,
+      cloudPath,
       name: res.fileID.split("/").pop(),
       sort: index + 1
     }));
@@ -98,8 +100,3 @@ function deleteCloudFiles(fileIds) {
     fileList: fileIds
   }).then(() => {}).catch(() => {});
 }
-
-module.exports = {
-  uploadCheckinPhotos,
-  deleteCloudFiles
-};

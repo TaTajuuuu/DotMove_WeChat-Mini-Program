@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "今日打卡"
+  "navigationBarTitleText": "今日打卡",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

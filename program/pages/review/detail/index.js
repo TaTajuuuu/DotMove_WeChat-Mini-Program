@@ -11,6 +11,12 @@ Page({
     members: []
   },
 
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
+  },
+
   onLoad(options = {}) {
     this.setData({ archiveSnapshotId: options.archiveSnapshotId || "" });
     this.loadDetail(options.archiveSnapshotId || "");

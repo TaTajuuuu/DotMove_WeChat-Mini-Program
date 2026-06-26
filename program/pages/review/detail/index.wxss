@@ -1,0 +1,60 @@
+.page {
+  min-height: 100vh;
+  padding: 0 36rpx 200rpx;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.state-card,
+.summary-card,
+.member-card {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #20251f;
+  margin-top: 28rpx;
+}
+
+.page-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: #687064;
+  font-size: 26rpx;
+}
+
+.summary-card text,
+.member-name,
+.member-meta,
+.error-text {
+  display: block;
+}
+
+.summary-card text,
+.member-meta {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.member-name {
+  color: #20251f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.member-card {
+  display: block;
+}
+
+.error-text {
+  color: #ba5148;
+  font-size: 26rpx;
+}

@@ -35,7 +35,8 @@ async function callYidianApi(domain, action, payload = {}, options = {}) {
         action,
         payload,
         requestId
-      }
+      },
+      timeout: 15000
     });
     const response = cloudResult && cloudResult.result ? cloudResult.result : cloudResult;
 

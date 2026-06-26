@@ -1,13 +1,62 @@
-<view class="page review-page">
-  <text class="page-title">月度回顾</text>
-  <text class="page-desc">只读查看已归档小组复盘。</text>
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无可查看归档。</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
-  <view wx:else>
-    <view wx:for="{{archives}}" wx:key="archiveSnapshotId" class="archive-card" data-archive-id="{{item.archiveSnapshotId}}" bindtap="handleOpenArchive">
-      <text class="archive-title">{{item.groupName}}</text>
-      <text class="archive-meta">{{item.monthKey}} · {{item.activeMemberCount}} 人 · {{item.groupCompletionRate === null ? '--' : item.groupCompletionRate + '%'}}</text>
+<view class="page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <text class="nav-title">回顾</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
     </view>
   </view>
+
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">归档小组\n月度回顾</text>
+        <text class="hero-desc">查看已归档小组的只读复盘。</text>
+      </view>
+      <view class="badge">{{archives.length}} 个归档</view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{pageState === 'loading'}}" class="state-card">
+    <text class="state-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{pageState === 'empty'}}" class="state-card">
+    <text class="state-text">暂无可查看归档。</text>
+  </view>
+
+  <view wx:elif="{{pageState === 'error'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+  </view>
+
+  <view wx:else>
+    <!-- 已归档小组 -->
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">已归档小组</text>
+        <text class="section-meta">按月份</text>
+      </view>
+      <view class="field-list">
+        <view
+          wx:for="{{archives}}"
+          wx:key="archiveSnapshotId"
+          class="field"
+          data-archive-id="{{item.archiveSnapshotId}}"
+          bindtap="handleOpenArchive"
+        >
+          <view class="field-row">
+            <text class="field-label">{{item.groupName}}</text>
+            <text class="field-value">{{item.groupCompletionRate === null ? '--' : item.groupCompletionRate + '%'}}</text>
+          </view>
+          <text class="field-desc">{{item.monthKey}} · {{item.completedMemberCount || 0}}/{{item.activeMemberCount || 0}} 人完成 · 点击查看归档复盘详情</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

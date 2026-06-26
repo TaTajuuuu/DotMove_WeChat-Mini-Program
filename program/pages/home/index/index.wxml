@@ -1,68 +1,136 @@
 <view class="page home-page">
+  <!-- Hero 区域 -->
   <view class="hero">
-    <text class="eyebrow">一点运动</text>
-    <text class="page-title">我的运动小组</text>
-    <text class="page-desc">查看当前小组，创建或通过邀请码加入新的月度运动小组。</text>
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-main">{{monthName}}运动</text>
+        <text class="hero-sub">一点开始</text>
+        <text class="hero-desc">今天还有 {{checkinAvailableCount}} 个小组可打卡。</text>
+      </view>
+      <view class="month-badge">{{currentMonth}}</view>
+    </view>
   </view>
 
+  <!-- 快捷操作：两个横排按钮 -->
+  <view class="quick-actions">
+    <view class="action primary" bindtap="handleCreateGroup">
+      <view class="action-icon">+</view>
+      <text class="action-text">创建小组</text>
+    </view>
+    <view class="action secondary" bindtap="handleShowJoinModal">
+      <view class="action-icon list-icon">≡</view>
+      <text class="action-text">邀请码加入</text>
+    </view>
+  </view>
+
+  <!-- 加入小组弹窗 -->
+  <view wx:if="{{showJoinModal}}" class="modal-overlay" bindtap="handleHideJoinModal">
+    <view class="modal-content" catchtap="">
+      <text class="modal-title">加入小组</text>
+      <input class="modal-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
+      <view class="modal-actions">
+        <button class="modal-btn cancel" bindtap="handleHideJoinModal">取消</button>
+        <button class="modal-btn confirm" bindtap="handleJoinGroup">加入</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
   <view wx:if="{{pageState === 'loading'}}" class="state-block">
-    <text>加载中...</text>
+    <view class="loading-spinner"></view>
+    <text class="state-text">加载中...</text>
   </view>
 
-  <view wx:elif="{{pageState === 'error' || pageState === 'forbidden'}}" class="state-block">
-    <text class="state-title">{{errorMessage}}</text>
-    <button class="primary-btn" bindtap="handleRetry">重试</button>
+  <!-- 错误状态 -->
+  <view wx:elif="{{pageState === 'error' || pageState === 'forbidden'}}" class="state-block error-state">
+    <text class="error-title">{{errorMessage}}</text>
+    <button class="primary-btn-sm" bindtap="handleRetry">重试</button>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{pageState === 'empty' && !activeGroups.length && !upcomingGroups.length}}" class="empty-hint">
+    <text class="empty-text">暂无进行中或未开始的小组</text>
+    <text class="empty-desc">创建本月或下月小组，也可以输入邀请码加入。</text>
   </view>
 
   <view wx:else>
-    <view class="action-panel">
-      <button class="primary-btn" bindtap="handleCreateGroup">创建小组</button>
-      <view class="join-row">
-        <input class="invite-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
-        <button class="secondary-btn" bindtap="handleJoinGroup">加入</button>
-      </view>
-    </view>
-
-    <view wx:if="{{pageState === 'empty'}}" class="state-block">
-      <text class="state-title">暂无进行中或未开始的小组</text>
-      <text class="state-desc">创建本月或下月小组，也可以输入邀请码加入。</text>
-    </view>
-
-    <view wx:if="{{currentGroups.length}}" class="section">
+    <!-- 当前小组 -->
+    <view wx:if="{{activeGroups.length}}" class="section">
       <view class="section-head">
         <text class="section-title">当前小组</text>
+        <text class="section-meta">{{activeGroups.length}} 个进行中</text>
       </view>
-      <view
-        wx:for="{{currentGroups}}"
-        wx:key="groupId"
-        class="group-card"
-        data-group-id="{{item.groupId}}"
-        bindtap="handleOpenGroup"
-      >
-        <view>
-          <text class="group-name">{{item.name}}</text>
-          <text class="group-meta">{{item.status === 'active' ? '进行中' : '未开始'}} · {{item.activeMemberCount}}/{{item.maxMembers}}</text>
-        </view>
-        <view class="target-pill {{item.targetSummary.status === 'unset' ? 'muted' : ''}}">
-          {{item.targetSummary.status === 'unset' ? '未设置目标' : item.targetSummary.selectedGoalCount + ' 项目标'}}
+      <view class="group-list">
+        <view
+          wx:for="{{activeGroups}}"
+          wx:key="groupId"
+          class="group-card"
+          data-group-id="{{item.groupId}}"
+          bindtap="handleOpenGroup"
+        >
+          <view class="card-top">
+            <view class="card-info">
+              <text class="group-name">{{item.name}}</text>
+              <text class="group-subtitle">{{item.dateRange}} · {{item.activeMemberCount}} 人{{item.hasTarget ? ' · 已设置目标' : ''}}</text>
+            </view>
+            <view class="tag active">进行中</view>
+          </view>
+          <!-- 进度条（进行中小组显示） -->
+          <view class="progress-wrap" wx:if="{{item.progress !== undefined}}">
+            <view class="progress-row">
+              <text class="progress-label">个人综合进度</text>
+              <text class="progress-value">{{item.progress}}%</text>
+            </view>
+            <view class="progress-bar">
+              <view class="progress-fill" style="width: {{item.progress}}%"></view>
+            </view>
+          </view>
+          <view class="card-foot">
+            <view class="avatars">
+              <block wx:for="{{item.avatarList}}" wx:for-item="avt" wx:key="*this">
+                <view class="avatar {{avt.type}}">{{avt.text}}</view>
+              </block>
+            </view>
+            <text class="link-btn">进入小组</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{archiveSummaries.length}}" class="section">
+    <!-- 即将开始 -->
+    <view wx:if="{{upcomingGroups.length}}" class="section">
       <view class="section-head">
-        <text class="section-title">最近回顾</text>
+        <text class="section-title">即将开始</text>
+        <text class="section-meta">可先设置目标</text>
       </view>
-      <view
-        wx:for="{{archiveSummaries}}"
-        wx:key="archiveSnapshotId"
-        class="archive-row"
-        data-archive-id="{{item.archiveSnapshotId}}"
-        bindtap="handleOpenArchive"
-      >
-        <text>{{item.groupName}} · {{item.monthKey}}</text>
-        <text>{{item.groupCompletionRate === null ? '暂无完成率' : item.groupCompletionRate + '%'}}</text>
+      <view class="group-list">
+        <view
+          wx:for="{{upcomingGroups}}"
+          wx:key="groupId"
+          class="group-card"
+          data-group-id="{{item.groupId}}"
+          bindtap="handleOpenGroup"
+        >
+          <view class="card-top">
+            <view class="card-info">
+              <text class="group-name">{{item.name}}</text>
+              <text class="group-subtitle">{{item.dateRange}} · {{item.activeMemberCount}} 人 · 小组尚未开始</text>
+            </view>
+            <view class="tag planned">未开始</view>
+          </view>
+          <view class="card-foot">
+            <view class="avatars">
+              <block wx:for="{{item.avatarList}}" wx:for-item="avt" wx:key="*this">
+                <view class="avatar {{avt.type}}">{{avt.text}}</view>
+              </block>
+            </view>
+            <text class="link-btn">设置目标</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

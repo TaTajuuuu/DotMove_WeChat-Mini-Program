@@ -1,44 +1,153 @@
 <view class="page manage-page">
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
-  <view wx:else>
-    <text class="page-title">小组管理</text>
-    <text class="page-desc">修改名称、邀请成员和处理敏感操作。</text>
-
-    <view class="panel">
-      <text class="field-label">小组名称</text>
-      <input class="text-input" maxlength="20" value="{{name}}" bindinput="handleNameInput" />
-      <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleRename">保存名称</button>
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="handleBack">
+      <view class="back-arrow"></view>
     </view>
-
-    <view class="panel">
-      <text class="field-label">邀请码</text>
-      <view class="invite-row">
-        <text class="invite-code">{{group.inviteCode}}</text>
-        <button class="secondary-btn" bindtap="handleCopyInvite">复制</button>
+    <text class="nav-title">小组管理</text>
+    <view class="nav-capsule">
+      <view class="capsule-more">
+        <view class="more-dot"></view>
+        <view class="more-dot"></view>
+        <view class="more-dot"></view>
       </view>
+      <view class="capsule-circle"></view>
     </view>
-
-    <view class="panel">
-      <text class="field-label">成员管理</text>
-      <view wx:for="{{members}}" wx:key="membershipId" class="member-row">
-        <view>
-          <text class="member-name">{{item.nickname}}</text>
-          <text class="member-meta">{{item.role === 'creator' ? '当前创建者' : '有效成员'}}</text>
-        </view>
-        <view wx:if="{{item.canRemove}}" class="member-actions">
-          <button class="mini-btn" data-membership-id="{{item.membershipId}}" bindtap="handleTransfer">转让</button>
-          <button class="danger-mini" data-membership-id="{{item.membershipId}}" bindtap="handleRemove">移除</button>
-        </view>
-      </view>
-    </view>
-
-    <view class="panel danger-panel">
-      <button class="secondary-btn wide" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleExit">退出小组</button>
-      <button class="danger-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleDissolve">解散小组</button>
-      <text class="hint">敏感操作需要二次确认，并由服务端记录审计。</text>
-    </view>
-
-    <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
   </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{pageState === 'loading'}}" class="state-container">
+    <view class="state-card">
+      <text class="state-text">加载中...</text>
+    </view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{pageState === 'error'}}" class="state-container">
+    <view class="state-card">
+      <text class="error-text">{{errorMessage}}</text>
+    </view>
+  </view>
+
+  <!-- 正常状态 -->
+  <view wx:elif="{{pageState === 'ready'}}" class="page-content">
+    <!-- Hero 区域 -->
+    <view class="hero">
+      <view class="hero-title">
+        <view class="hero-text">
+          <text class="hero-heading">维护小组</text>
+          <text class="hero-heading">成员关系</text>
+          <text class="hero-desc">仅创建者可见。</text>
+        </view>
+        <view class="hero-badge">
+          <text class="badge-text">创建者</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 小组名称卡片 -->
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">小组名称</text>
+        <text class="section-meta">1-20 个字符</text>
+      </view>
+      <view class="name-input-row">
+        <input
+          class="name-input"
+          maxlength="20"
+          value="{{name}}"
+          bindinput="handleNameInput"
+          placeholder="请输入小组名称"
+        />
+        <text class="char-count">{{name.length}}/20</text>
+      </view>
+      <button
+        class="primary-btn"
+        loading="{{submitting && actionType === 'rename'}}"
+        disabled="{{submitting}}"
+        bindtap="handleRename"
+      >保存名称</button>
+    </view>
+
+    <!-- 邀请方式面板 -->
+    <view class="panel">
+      <view class="section-head">
+        <text class="section-title">邀请方式</text>
+        <text class="section-meta">未满 50 人可加入</text>
+      </view>
+      <view class="invite-row">
+        <text class="invite-code">{{group.inviteCode || '暂无'}}</text>
+        <button class="ghost-btn" bindtap="handleCopyInvite">复制</button>
+      </view>
+    </view>
+
+    <!-- 成员管理面板 -->
+    <view class="panel">
+      <view class="section-head">
+        <text class="section-title">成员管理</text>
+        <text class="section-meta">{{memberCount}}/{{maxMembers}}</text>
+      </view>
+      <view class="member-list">
+        <view
+          wx:for="{{members}}"
+          wx:key="membershipId"
+          class="member-item"
+        >
+          <view class="member-avatar {{item.role === 'creator' ? 'avatar-creator' : item.hasGoal ? 'avatar-normal' : 'avatar-mute'}}">
+            <text class="avatar-text">{{item.avatarText || '?'}}</text>
+          </view>
+          <view class="member-info">
+            <text class="member-name">{{item.nickname || '未知用户'}}</text>
+            <text class="member-meta">
+              <block wx:if="{{item.role === 'creator'}}">当前创建者 · 有效成员</block>
+              <block wx:else>加入于 {{item.joinDate || '--'}} · {{item.hasGoal ? '已设置目标' : '未设置目标'}}</block>
+            </text>
+          </view>
+          <view class="member-right">
+            <view wx:if="{{item.role === 'creator'}}" class="tag tag-creator">
+              <text>创建者</text>
+            </view>
+            <view wx:elif="{{item.canRemove}}" class="member-actions">
+              <button class="ghost-btn-small" data-membership-id="{{item.membershipId}}" bindtap="handleTransfer">转让</button>
+              <button class="danger-btn-small" data-membership-id="{{item.membershipId}}" bindtap="handleRemove">移除</button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 危险操作面板 -->
+    <view class="panel danger-panel">
+      <view class="section-head">
+        <text class="section-title">危险操作</text>
+        <text class="section-meta">二次确认</text>
+      </view>
+      <view class="danger-zone">
+        <button
+          class="ghost-btn-wide"
+          loading="{{submitting && actionType === 'exit'}}"
+          disabled="{{submitting}}"
+          bindtap="handleExit"
+        >退出小组</button>
+        <button
+          class="danger-btn-wide"
+          loading="{{submitting && actionType === 'dissolve'}}"
+          disabled="{{submitting}}"
+          bindtap="handleDissolve"
+        >解散小组</button>
+      </view>
+      <view class="notice">
+        <view class="notice-icon">!</view>
+        <text class="notice-text">创建者退出前必须先转让创建者身份。\n解散后普通页面不可见且不可恢复。</text>
+      </view>
+    </view>
+
+    <!-- 错误提示 -->
+    <view wx:if="{{errorMessage && pageState === 'ready'}}" class="error-container">
+      <text class="error-text">{{errorMessage}}</text>
+    </view>
+  </view>
+
+  <!-- 自定义 tabBar -->
+  <custom-tab-bar />
 </view>

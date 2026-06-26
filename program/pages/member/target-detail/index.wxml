@@ -1,24 +1,114 @@
-<view class="page member-target-page">
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
-  <view wx:else>
-    <text class="page-title">{{memberStats.nickname}}</text>
-    <text class="page-desc">{{memberStats.role === 'creator' ? '创建者' : '成员'}} · {{memberStats.completed ? '已完成' : memberStats.overallProgress === null ? '未设置目标' : memberStats.overallProgress + '%'}}</text>
-
-    <view class="summary-card">
-      <text>一点币：{{memberStats.coinValue}}</text>
-      <text>完成日期：{{memberStats.completedAt || '--'}}</text>
-      <text>有效记录：{{memberStats.recordSummary.validRecordCount}}</text>
-    </view>
-
-    <view wx:if="{{!memberStats.targetProgressList.length}}" class="state-card">
-      <text>该成员尚未设置目标。</text>
-    </view>
-
-    <view wx:for="{{memberStats.targetProgressList}}" wx:key="goalType" class="goal-row">
-      <text class="goal-name">{{item.goalType}}</text>
-      <text class="goal-meta">{{item.doneValue}} / {{item.targetValue}} · {{item.progress}}%</text>
-      <text class="goal-meta">达成日期：{{item.achievedAt || '--'}}</text>
+<view class="page member-target-detail-page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">成员目标详情</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
     </view>
   </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{pageState === 'loading'}}" class="state-card">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{pageState === 'error'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+  </view>
+
+  <!-- 正常状态 -->
+  <view wx:elif="{{pageState === 'ready'}}">
+    <!-- Hero 区域 -->
+    <view class="hero">
+      <view class="hero-title">
+        <view class="hero-text">
+          <text class="hero-name">{{memberStats.nickname}}</text>
+          <text class="hero-subtitle">目标详情</text>
+          <text class="hero-desc">查看成员在本组内的目标及完成情况。</text>
+        </view>
+        <view class="badge {{memberStats.statusClass}}">
+          <text>{{memberStats.statusText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成员信息卡片 -->
+    <view class="card" aria-label="成员信息">
+      <view class="section-head">
+        <text class="section-title">成员信息</text>
+        <view class="tag {{memberStats.roleTagClass}}">
+          <text>{{memberStats.roleText}}</text>
+        </view>
+      </view>
+      <view class="field-list">
+        <view class="field">
+          <view class="field-row">
+            <text class="field-name">{{memberStats.nickname}}</text>
+            <text class="field-value">{{memberStats.targetName}}</text>
+          </view>
+          <text class="field-desc">{{memberStats.targetDesc}}</text>
+        </view>
+        <view class="field">
+          <view class="field-row">
+            <text class="field-name">一点币</text>
+            <text class="field-value coin-value">{{memberStats.coinValue}}</text>
+          </view>
+          <text class="field-desc">仅作为目标承诺值展示。</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 组内目标与完成情况面板 -->
+    <view class="panel" aria-label="组内目标与完成情况">
+      <view class="section-head">
+        <text class="section-title">组内目标与完成情况</text>
+        <view class="tag {{memberStats.overallTagClass}}">
+          <text>{{memberStats.overallStatusText}}</text>
+        </view>
+      </view>
+
+      <!-- 无目标状态 -->
+      <view wx:if="{{!memberStats.targetProgressList.length}}" class="empty-card">
+        <text>该成员尚未设置目标。</text>
+      </view>
+
+      <!-- 目标进度列表 -->
+      <view wx:else class="field-list">
+        <block wx:for="{{memberStats.targetProgressList}}" wx:key="goalType">
+          <view class="field">
+            <view class="field-row">
+              <text class="field-name">{{item.goalTypeText}}</text>
+              <text class="field-value">{{item.progressText}}</text>
+            </view>
+            <text class="field-desc">{{item.achievedDesc}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 相关打卡面板 -->
+    <view wx:if="{{memberStats.recentRecords && memberStats.recentRecords.length}}" class="panel" aria-label="最近打卡">
+      <view class="section-head">
+        <text class="section-title">相关打卡</text>
+        <text class="section-meta">最近 {{memberStats.recentRecords.length}} 条</text>
+      </view>
+      <view class="field-list">
+        <block wx:for="{{memberStats.recentRecords}}" wx:key="date">
+          <view class="field">
+            <view class="field-row">
+              <text class="field-name">{{item.dateText}}</text>
+              <text class="field-value">{{item.calorieText}}</text>
+            </view>
+            <text class="field-desc">{{item.recordDesc}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自定义 tabBar -->
+  <custom-tab-bar />
 </view>

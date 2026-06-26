@@ -1,8 +1,63 @@
-<view class="page">
-  <text class="page-title">{{title}}</text>
-  <text class="page-desc">{{description}}</text>
-  <view class="placeholder-card">
-    <text class="placeholder-label">归档成员目标详情页</text>
-    <text class="placeholder-text">{{label}}</text>
+<view class="page archive-member-detail-page">
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="handleBack">
+      <text class="back-arrow">←</text>
+    </view>
+    <text class="nav-title">{{memberNickname}} 归档详情</text>
+    <view class="nav-capsule"></view>
   </view>
+
+  <!-- Hero 区域 -->
+  <view class="hero-section">
+    <text class="hero-title">{{memberNickname}} 目标详情</text>
+    <text class="hero-desc">查看归档时冻结的成员归档目标完成情况。</text>
+    <view class="hero-badge">归档只读</view>
+  </view>
+
+  <!-- 成员信息卡片 -->
+  <view class="info-card">
+    <view class="card-header">
+      <text class="card-title">成员信息</text>
+      <view class="tag tag-member">成员</view>
+    </view>
+    <view class="info-row">
+      <view class="info-field">
+        <text class="field-label">昵称</text>
+        <text class="field-value">{{memberNickname}}</text>
+      </view>
+      <view class="info-field">
+        <text class="field-label">小组名</text>
+        <text class="field-value">{{groupName}}</text>
+      </view>
+    </view>
+    <text class="info-desc">{{memberNickname}} · {{monthLabel}} · {{summaryText}}</text>
+    <view class="info-row coin-row">
+      <view class="info-field">
+        <text class="field-label">一点币</text>
+        <text class="field-value coin-value">{{coinValue}}</text>
+      </view>
+    </view>
+    <text class="info-desc">仅作为目标承诺值展示。</text>
+  </view>
+
+  <!-- 目标完成情况面板 -->
+  <view class="target-card">
+    <view class="card-header">
+      <text class="card-title">目标完成情况</text>
+      <view class="tag tag-completed">{{completed ? '已完成' : '未完成'}}</view>
+    </view>
+    <view wx:for="{{targetItems}}" wx:key="goalType" class="target-row">
+      <view class="target-left">
+        <text class="target-name">{{item.goalName}}</text>
+        <text class="target-value">{{item.doneValue}} / {{item.targetValue}}{{item.unit}}</text>
+      </view>
+      <view class="target-right">
+        <text wx:if="{{item.achievedDate}}" class="target-date">达成日期：{{item.achievedDate}}</text>
+        <text wx:if="{{item.note}}" class="target-note">{{item.note}}</text>
+      </view>
+    </view>
+  </view>
+
+  <custom-tab-bar />
 </view>

@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "归档复盘"
+  "navigationBarTitleText": "归档复盘",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

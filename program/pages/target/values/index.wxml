@@ -1,46 +1,84 @@
 <view class="page values-page">
-  <text class="page-title">目标数值</text>
-  <text class="page-desc">仅填写已选择目标类型对应的数值。</text>
-
-  <view wx:if="{{selectedGoalTypes.indexOf('calorieTotal') >= 0}}" class="field-card">
-    <text class="field-label">月总最低热量（kcal）</text>
-    <input class="number-input" type="digit" data-field="calorieTotal.targetKcal" bindinput="handleInput" />
+  <!-- 导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="handleBack"></view>
+    <text class="nav-title">目标设置</text>
+    <view class="nav-placeholder"></view>
   </view>
 
-  <view wx:if="{{selectedGoalTypes.indexOf('durationTotal') >= 0}}" class="field-card">
-    <text class="field-label">运动时长（小时）</text>
-    <input class="number-input" type="digit" data-field="durationTotal.targetHours" bindinput="handleInput" />
+  <!-- Hero -->
+  <view class="hero">
+    <view class="hero-left">
+      <text class="hero-title">设置本月<br/>目标数值</text>
+      <text class="hero-desc">根据选择的目标类型填写对应目标值。</text>
+    </view>
+    <view class="status-badge">{{statusLabel}}</view>
   </view>
 
-  <view wx:if="{{selectedGoalTypes.indexOf('exerciseDays') >= 0}}" class="field-card">
-    <text class="field-label">运动天数（天）</text>
-    <input class="number-input" type="number" data-field="exerciseDays.targetDays" bindinput="handleInput" />
-    <text class="field-label sub">单天最低热量（kcal）</text>
-    <input class="number-input" type="digit" data-field="exerciseDays.minKcalPerDay" bindinput="handleInput" />
+  <!-- 目标值卡片 -->
+  <view class="card">
+    <view class="section-head">
+      <text class="section-title">目标值</text>
+      <text class="section-meta">仅显示选择类型</text>
+    </view>
+
+    <view class="field-list">
+      <block wx:for="{{fields}}" wx:key="key">
+        <view class="field">
+          <view class="field-row">
+            <text class="field-name">{{item.label}}</text>
+            <input
+              class="field-input"
+              type="digit"
+              placeholder="{{item.placeholder}}"
+              data-key="{{item.key}}"
+              value="{{form[item.key]}}"
+              bindinput="handleInput"
+            />
+            <text class="field-unit" wx:if="{{item.unit}}">{{item.unit}}</text>
+          </view>
+          <text class="field-hint" wx:if="{{item.hint}}">{{item.hint}}</text>
+
+          <!-- 子字段（运动天数/次数的子热量） -->
+          <view class="sub-field" wx:if="{{item.subField}}">
+            <view class="field-row sub-row">
+              <text class="field-name">{{item.subField.label}}</text>
+              <input
+                class="field-input"
+                type="digit"
+                placeholder="{{item.subField.placeholder}}"
+                data-key="{{item.subField.key}}"
+                value="{{form[item.subField.key]}}"
+                bindinput="handleInput"
+              />
+              <text class="field-unit" wx:if="{{item.subField.unit}}">{{item.subField.unit}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 空状态 -->
+      <view class="empty-hint" wx:if="{{fields.length === 0}}">
+        <text>请先返回选择至少一种目标类型。</text>
+      </view>
+    </view>
   </view>
 
-  <view wx:if="{{selectedGoalTypes.indexOf('exerciseTimes') >= 0}}" class="field-card">
-    <text class="field-label">运动次数（次）</text>
-    <input class="number-input" type="number" data-field="exerciseTimes.targetTimes" bindinput="handleInput" />
-    <text class="field-label sub">单次最低热量（kcal）</text>
-    <input class="number-input" type="digit" data-field="exerciseTimes.minKcalPerTime" bindinput="handleInput" />
+  <!-- 提示 -->
+  <view class="notice" wx:if="{{noticeText}}">
+    <text>{{noticeText}}</text>
   </view>
 
-  <view wx:if="{{selectedGoalTypes.indexOf('runningDistance') >= 0}}" class="field-card">
-    <text class="field-label">跑步距离（km）</text>
-    <input class="number-input" type="digit" data-field="runningDistance.targetKm" bindinput="handleInput" />
-  </view>
-
-  <view wx:if="{{selectedGoalTypes.indexOf('cyclingDistance') >= 0}}" class="field-card">
-    <text class="field-label">骑行距离（km）</text>
-    <input class="number-input" type="digit" data-field="cyclingDistance.targetKm" bindinput="handleInput" />
-  </view>
-
-  <view wx:if="{{selectedGoalTypes.indexOf('ringClosedDays') >= 0}}" class="field-card">
-    <text class="field-label">三环闭合（天）</text>
-    <input class="number-input" type="number" data-field="ringClosedDays.targetDays" bindinput="handleInput" />
-  </view>
-
+  <!-- 错误提示 -->
   <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
-  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSave">保存目标配置</button>
+
+  <!-- 按钮 -->
+  <button
+    class="primary-btn"
+    loading="{{submitting}}"
+    disabled="{{submitting || fields.length === 0}}"
+    bindtap="handleSave"
+  >保存目标配置</button>
+
+  <custom-tab-bar />
 </view>

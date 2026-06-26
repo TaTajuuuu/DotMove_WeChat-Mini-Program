@@ -1,5 +1,5 @@
 const { createAuthContext, requireCurrentUser } = require("../common/auth");
-const { AppError, ErrorCodes, notImplemented } = require("../common/errors");
+const { AppError, ErrorCodes } = require("../common/errors");
 const { calculateMemberStats } = require("../common/stats");
 
 const SUPPORTED_GOAL_TYPES = [
@@ -96,8 +96,9 @@ function normalizeNumber(value, field) {
 }
 
 function normalizeNonNegativeNumber(value, field) {
+  // 空值默认为 0
   if (value === "" || value === null || value === undefined) {
-    throw new AppError(ErrorCodes.TARGET_INVALID_COIN, "", { field });
+    return 0;
   }
   const numberValue = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numberValue) || numberValue < 0) {

@@ -1,19 +1,97 @@
-<view class="page me-page">
-  <text class="page-title">我的目标</text>
-  <text class="page-desc">查看当前小组目标摘要和运动记录入口。</text>
+<view class="page">
+  <!-- 导航栏 -->
+  <view class="nav">
+    <text class="nav-title">我的</text>
+    <view class="capsule">
+      <view class="more-icon"><text></text></view>
+      <view class="circle-icon"></view>
+    </view>
+  </view>
 
-  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
-  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无 active 或未开始小组。</text></view>
-  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-title">
+      <view class="hero-text">
+        <text class="hero-heading">我的运动\n目标中心</text>
+        <text class="hero-desc">查看小组、目标和运动日历。</text>
+      </view>
+      <view class="badge">{{currentMonthLabel}}</view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{pageState === 'loading'}}" class="state-card">
+    <text class="state-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{pageState === 'error'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+  </view>
 
   <view wx:else>
-    <view wx:for="{{groups}}" wx:key="groupId" class="group-row {{selectedGroupId === item.groupId ? 'selected' : ''}}" data-group-id="{{item.groupId}}" bindtap="handleSelectGroup">
-      <view>
-        <text class="group-name">{{item.name}}</text>
-        <text class="group-meta">{{item.nickname}} · {{item.status === 'active' ? '进行中' : '未开始'}}</text>
+    <!-- 小组列表 -->
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">小组列表</text>
+        <text class="section-meta">{{groups.length}} 个小组</text>
       </view>
-      <text class="pill">{{item.targetSummary.status === 'unset' ? '未设置' : item.targetSummary.selectedGoalCount + ' 项'}}</text>
+      <view class="field-list">
+        <view
+          wx:for="{{groups}}"
+          wx:key="groupId"
+          class="group-row"
+          data-group-id="{{item.groupId}}"
+          bindtap="handleSelectGroup"
+        >
+          <view>
+            <text class="group-name">{{item.name}}</text>
+            <text class="group-meta">昵称：{{item.nickname}} · {{item.status === 'active' ? '进行中' : item.status === 'upcoming' ? '未开始' : '已归档'}}</text>
+          </view>
+          <text class="chev">›</text>
+        </view>
+      </view>
     </view>
-    <button class="primary-btn" bindtap="handleOpenDetail">查看目标详情</button>
+
+    <!-- 我的目标 -->
+    <view wx:if="{{selectedGroup}}" class="panel">
+      <view class="section-head">
+        <text class="section-title">我的目标</text>
+        <text class="tag soft">{{selectedGroup.targetSummary.status === 'locked' ? '已锁定' : selectedGroup.targetSummary.status === 'unset' ? '未设置' : '设置中'}}</text>
+      </view>
+      <view class="field-list">
+        <view class="field">
+          <view class="field-row">
+            <text class="field-label">目标类型</text>
+            <text class="field-value">{{selectedGroup.targetSummary.selectedGoalCount}} 项</text>
+          </view>
+          <text class="field-desc">{{selectedGroup.targetSummary.selectedGoalNames || '热量、时长、天数、次数、三环闭合。'}}</text>
+        </view>
+        <view class="field">
+          <view class="field-row">
+            <text class="field-label">一点币</text>
+            <text class="field-value">{{selectedGroup.coins || 0}}</text>
+          </view>
+        </view>
+      </view>
+      <button class="primary-btn" bindtap="handleOpenDetail">查看目标详情</button>
+    </view>
+
+    <!-- 运动日历 -->
+    <view wx:if="{{selectedGroup && calendarDays}}" class="panel">
+      <view class="section-head">
+        <text class="section-title">运动日历</text>
+        <text class="section-meta">{{currentMonthLabel}}</text>
+      </view>
+      <view class="calendar-grid">
+        <view
+          wx:for="{{calendarDays}}"
+          wx:key="date"
+          class="calendar-day {{item.done ? 'done' : ''}} {{item.isBlank ? 'blank' : ''}}"
+        >{{item.day}}</view>
+      </view>
+    </view>
   </view>
+
+  <!-- 自定义底部导航 -->
+  <custom-tab-bar />
 </view>

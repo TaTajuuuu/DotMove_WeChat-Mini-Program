@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "小组管理"
+  "navigationBarTitleText": "小组管理",
+  "usingComponents": {
+    "custom-tab-bar": "/custom-tab-bar/index"
+  }
 }

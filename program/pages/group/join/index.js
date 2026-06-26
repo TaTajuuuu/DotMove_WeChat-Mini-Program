@@ -12,6 +12,12 @@ Page({
     submitting: false
   },
 
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0 });
+    }
+  },
+
   onLoad(options = {}) {
     if (options.inviteCode) {
       this.setData({ inviteCode: options.inviteCode });
@@ -63,9 +69,11 @@ Page({
 
     this.setData({ submitting: true, errorMessage: "" });
     try {
+      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       const result = await groupService.joinGroup({
         inviteCode: this.data.inviteCode,
-        nickname
+        nickname,
+        requestId
       }, { loadingText: "加入中" });
       const data = result.data || {};
       const targetUrl = data.alreadyMember
