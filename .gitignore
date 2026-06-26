@@ -45,3 +45,6 @@ cloudbaserc.json
 
 # Accidental system/cache directory copied into the project
 %SystemDrive%/
+
+# WorkBuddy local project data (not to be shared)
+.workbuddy/
