@@ -1,0 +1,191 @@
+{
+  "version": "0.1.0",
+  "source": "docs/03-technical-design.md#3",
+  "collections": [
+    {
+      "name": "users",
+      "purpose": "Store minimum WeChat user identity.",
+      "requiredFields": ["openid", "status", "createdAt", "updatedAt"],
+      "indexes": [
+        { "name": "uniq_openid", "fields": ["openid"], "unique": true }
+      ]
+    },
+    {
+      "name": "groups",
+      "purpose": "Store group profile, lifecycle, invite status, current creator and member count.",
+      "requiredFields": [
+        "name",
+        "monthKey",
+        "groupType",
+        "status",
+        "lifecycleStartAt",
+        "lifecycleEndAt",
+        "creatorUserId",
+        "creatorMembershipId",
+        "inviteCode",
+        "inviteStatus",
+        "maxMembers",
+        "activeMemberCount",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "uniq_inviteCode", "fields": ["inviteCode"], "unique": true },
+        { "name": "idx_status_monthKey", "fields": ["status", "monthKey"], "unique": false },
+        { "name": "idx_creatorUserId_status", "fields": ["creatorUserId", "status"], "unique": false }
+      ]
+    },
+    {
+      "name": "memberships",
+      "purpose": "Store user-group membership, role, nickname, status and active participation periods.",
+      "requiredFields": [
+        "groupId",
+        "userId",
+        "openid",
+        "nickname",
+        "role",
+        "status",
+        "activePeriodSeq",
+        "activePeriods",
+        "joinedAt",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "uniq_groupId_userId", "fields": ["groupId", "userId"], "unique": true },
+        { "name": "idx_userId_status", "fields": ["userId", "status"], "unique": false },
+        { "name": "idx_groupId_status", "fields": ["groupId", "status"], "unique": false },
+        { "name": "idx_groupId_role_status", "fields": ["groupId", "role", "status"], "unique": false }
+      ]
+    },
+    {
+      "name": "targetConfigs",
+      "purpose": "Store one monthly target configuration per membership-group-month.",
+      "requiredFields": [
+        "membershipId",
+        "groupId",
+        "userId",
+        "monthKey",
+        "status",
+        "coinValue",
+        "selectedGoalTypes",
+        "goals",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "uniq_membershipId_groupId_monthKey", "fields": ["membershipId", "groupId", "monthKey"], "unique": true },
+        { "name": "idx_groupId_monthKey_status", "fields": ["groupId", "monthKey", "status"], "unique": false },
+        { "name": "idx_userId_monthKey", "fields": ["userId", "monthKey"], "unique": false }
+      ]
+    },
+    {
+      "name": "checkinRecords",
+      "purpose": "Store checkin and makeup records, metrics, photos, remarks, status and active-period context.",
+      "requiredFields": [
+        "groupId",
+        "membershipId",
+        "userId",
+        "monthKey",
+        "sportDate",
+        "submitDate",
+        "submitAt",
+        "isMakeup",
+        "makeupForExitedPeriod",
+        "membershipActivePeriodSeq",
+        "status",
+        "metrics",
+        "photos",
+        "editCount",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "idx_groupId_membershipId_sportDate_status", "fields": ["groupId", "membershipId", "sportDate", "status"], "unique": false },
+        { "name": "idx_userId_submitDate_isMakeup_status", "fields": ["userId", "submitDate", "isMakeup", "status"], "unique": false },
+        { "name": "idx_groupId_monthKey_status", "fields": ["groupId", "monthKey", "status"], "unique": false },
+        { "name": "idx_membershipId_monthKey_status", "fields": ["membershipId", "monthKey", "status"], "unique": false },
+        { "name": "idx_groupId_sportDate_status", "fields": ["groupId", "sportDate", "status"], "unique": false }
+      ]
+    },
+    {
+      "name": "archiveSnapshots",
+      "purpose": "Store frozen group archive overview and visibility scope.",
+      "requiredFields": [
+        "groupId",
+        "monthKey",
+        "groupName",
+        "lifecycleStartAt",
+        "lifecycleEndAt",
+        "archivedAt",
+        "visibleMembershipIds",
+        "visibleUserIds",
+        "activeMemberCount",
+        "completedMemberCount",
+        "incompleteMemberCount",
+        "groupCompletionRate",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "uniq_groupId_monthKey", "fields": ["groupId", "monthKey"], "unique": true },
+        { "name": "idx_visibleUserIds", "fields": ["visibleUserIds"], "unique": false },
+        { "name": "idx_monthKey_archivedAt", "fields": ["monthKey", "archivedAt"], "unique": false }
+      ]
+    },
+    {
+      "name": "archiveMemberSnapshots",
+      "purpose": "Store frozen member target and progress details for an archive snapshot.",
+      "requiredFields": [
+        "archiveSnapshotId",
+        "groupId",
+        "membershipId",
+        "userId",
+        "monthKey",
+        "nickname",
+        "role",
+        "targetConfigSnapshot",
+        "progressSnapshot",
+        "overallProgress",
+        "completed",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy"
+      ],
+      "indexes": [
+        { "name": "uniq_archiveSnapshotId_membershipId", "fields": ["archiveSnapshotId", "membershipId"], "unique": true },
+        { "name": "idx_groupId_monthKey_completed", "fields": ["groupId", "monthKey", "completed"], "unique": false },
+        { "name": "idx_userId_monthKey", "fields": ["userId", "monthKey"], "unique": false }
+      ]
+    },
+    {
+      "name": "auditLogs",
+      "purpose": "Store sensitive actions, state transitions, failures and trace IDs.",
+      "requiredFields": [
+        "actionType",
+        "actorUserId",
+        "targetType",
+        "result",
+        "createdAt"
+      ],
+      "indexes": [
+        { "name": "idx_groupId_createdAt", "fields": ["groupId", "createdAt"], "unique": false },
+        { "name": "idx_targetType_targetId_createdAt", "fields": ["targetType", "targetId", "createdAt"], "unique": false },
+        { "name": "idx_actorUserId_createdAt", "fields": ["actorUserId", "createdAt"], "unique": false },
+        { "name": "idx_traceId", "fields": ["traceId"], "unique": false }
+      ]
+    }
+  ]
+}

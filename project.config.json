@@ -1,0 +1,17 @@
+{
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "latest",
+  "miniprogramRoot": "program/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "projectname": "一点运动",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true
+  },
+  "condition": {}
+}

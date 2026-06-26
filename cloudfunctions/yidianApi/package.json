@@ -1,0 +1,10 @@
+{
+  "name": "yidian-api",
+  "version": "0.1.0",
+  "description": "Unified cloud function entry for Yidian Sports mini program.",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -1,0 +1,112 @@
+.state-card,
+.panel {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.field-label,
+.invite-code,
+.member-name,
+.member-meta,
+.hint,
+.error-text {
+  display: block;
+}
+
+.field-label,
+.member-name,
+.invite-code {
+  color: #20251f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.text-input {
+  height: 84rpx;
+  margin-top: 16rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: #fff;
+  font-size: 30rpx;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn {
+  height: 80rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 18rpx;
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.secondary-btn {
+  color: #23613e;
+  background: #f0f4e8;
+}
+
+.danger-btn {
+  width: 100%;
+  margin-top: 16rpx;
+  color: #fff;
+  background: #ba5148;
+}
+
+.invite-row,
+.member-row,
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.invite-row,
+.member-row {
+  justify-content: space-between;
+  margin-top: 18rpx;
+}
+
+.member-meta,
+.hint {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.mini-btn,
+.danger-mini {
+  min-width: 112rpx;
+  height: 64rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.mini-btn {
+  color: #23613e;
+  background: #f0f4e8;
+}
+
+.danger-mini {
+  color: #fff;
+  background: #ba5148;
+}
+
+.wide {
+  width: 100%;
+}
+
+.error-text {
+  margin-top: 18rpx;
+  color: #ba5148;
+  font-size: 26rpx;
+}

@@ -1,0 +1,62 @@
+.state-card,
+.group-row {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.group-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.group-row.selected {
+  border-color: #2f7d4f;
+}
+
+.group-name,
+.group-meta,
+.error-text {
+  display: block;
+}
+
+.group-name {
+  color: #20251f;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.group-meta {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.pill {
+  flex-shrink: 0;
+  padding: 8rpx 12rpx;
+  border-radius: 8rpx;
+  color: #23613e;
+  background: #f0f4e8;
+  font-size: 24rpx;
+}
+
+.primary-btn {
+  width: 100%;
+  height: 84rpx;
+  margin-top: 28rpx;
+  border-radius: 8rpx;
+  color: #fff;
+  background: #2f7d4f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.error-text {
+  color: #ba5148;
+  font-size: 26rpx;
+}

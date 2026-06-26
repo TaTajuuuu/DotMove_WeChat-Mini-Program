@@ -1,0 +1,24 @@
+<view class="page member-target-page">
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <view wx:else>
+    <text class="page-title">{{memberStats.nickname}}</text>
+    <text class="page-desc">{{memberStats.role === 'creator' ? '创建者' : '成员'}} · {{memberStats.completed ? '已完成' : memberStats.overallProgress === null ? '未设置目标' : memberStats.overallProgress + '%'}}</text>
+
+    <view class="summary-card">
+      <text>一点币：{{memberStats.coinValue}}</text>
+      <text>完成日期：{{memberStats.completedAt || '--'}}</text>
+      <text>有效记录：{{memberStats.recordSummary.validRecordCount}}</text>
+    </view>
+
+    <view wx:if="{{!memberStats.targetProgressList.length}}" class="state-card">
+      <text>该成员尚未设置目标。</text>
+    </view>
+
+    <view wx:for="{{memberStats.targetProgressList}}" wx:key="goalType" class="goal-row">
+      <text class="goal-name">{{item.goalType}}</text>
+      <text class="goal-meta">{{item.doneValue}} / {{item.targetValue}} · {{item.progress}}%</text>
+      <text class="goal-meta">达成日期：{{item.achievedAt || '--'}}</text>
+    </view>
+  </view>
+</view>

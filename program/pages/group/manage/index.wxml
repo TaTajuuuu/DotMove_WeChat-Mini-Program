@@ -1,0 +1,44 @@
+<view class="page manage-page">
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <view wx:else>
+    <text class="page-title">小组管理</text>
+    <text class="page-desc">修改名称、邀请成员和处理敏感操作。</text>
+
+    <view class="panel">
+      <text class="field-label">小组名称</text>
+      <input class="text-input" maxlength="20" value="{{name}}" bindinput="handleNameInput" />
+      <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleRename">保存名称</button>
+    </view>
+
+    <view class="panel">
+      <text class="field-label">邀请码</text>
+      <view class="invite-row">
+        <text class="invite-code">{{group.inviteCode}}</text>
+        <button class="secondary-btn" bindtap="handleCopyInvite">复制</button>
+      </view>
+    </view>
+
+    <view class="panel">
+      <text class="field-label">成员管理</text>
+      <view wx:for="{{members}}" wx:key="membershipId" class="member-row">
+        <view>
+          <text class="member-name">{{item.nickname}}</text>
+          <text class="member-meta">{{item.role === 'creator' ? '当前创建者' : '有效成员'}}</text>
+        </view>
+        <view wx:if="{{item.canRemove}}" class="member-actions">
+          <button class="mini-btn" data-membership-id="{{item.membershipId}}" bindtap="handleTransfer">转让</button>
+          <button class="danger-mini" data-membership-id="{{item.membershipId}}" bindtap="handleRemove">移除</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel danger-panel">
+      <button class="secondary-btn wide" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleExit">退出小组</button>
+      <button class="danger-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleDissolve">解散小组</button>
+      <text class="hint">敏感操作需要二次确认，并由服务端记录审计。</text>
+    </view>
+
+    <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+  </view>
+</view>

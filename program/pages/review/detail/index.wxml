@@ -1,0 +1,17 @@
+<view class="page archive-detail-page">
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <view wx:else>
+    <text class="page-title">{{archive.groupName}}</text>
+    <text class="page-desc">{{archive.monthKey}} · 归档只读</text>
+    <view class="summary-card">
+      <text>完成率：{{archive.groupCompletionRate === null ? '--' : archive.groupCompletionRate + '%'}}</text>
+      <text>完成：{{archive.completedMemberCount}} 人</text>
+      <text>未完成：{{archive.incompleteMemberCount}} 人</text>
+    </view>
+    <view wx:for="{{members}}" wx:key="membershipId" class="member-card" data-membership-id="{{item.membershipId}}" bindtap="handleOpenMember">
+      <text class="member-name">{{item.nickname}}</text>
+      <text class="member-meta">{{item.role === 'creator' ? '创建者' : '成员'}} · {{item.completed ? '已完成' : '未完成'}} · {{item.completedAt || '--'}}</text>
+    </view>
+  </view>
+</view>

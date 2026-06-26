@@ -1,0 +1,53 @@
+{
+  "pages": [
+    "pages/home/index/index",
+    "pages/checkin/create/index",
+    "pages/me/index/index",
+    "pages/review/index/index",
+    "pages/group/create/index",
+    "pages/group/join/index",
+    "pages/group/detail/index",
+    "pages/group/manage/index",
+    "pages/target/types/index",
+    "pages/target/values/index",
+    "pages/member/target-detail/index",
+    "pages/checkin/makeup/index",
+    "pages/checkin/records/index",
+    "pages/me/target-detail/index",
+    "pages/review/detail/index",
+    "pages/review/member-detail/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "一点运动",
+    "navigationBarBackgroundColor": "#f6f7f3",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6f7f3",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8a9384",
+    "selectedColor": "#23613e",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/index/index",
+        "text": "小组"
+      },
+      {
+        "pagePath": "pages/checkin/create/index",
+        "text": "打卡"
+      },
+      {
+        "pagePath": "pages/me/index/index",
+        "text": "我的"
+      },
+      {
+        "pagePath": "pages/review/index/index",
+        "text": "回顾"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

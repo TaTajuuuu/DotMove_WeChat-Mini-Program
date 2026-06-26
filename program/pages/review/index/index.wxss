@@ -1,0 +1,31 @@
+.state-card,
+.archive-card {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.archive-title,
+.archive-meta,
+.error-text {
+  display: block;
+}
+
+.archive-title {
+  color: #20251f;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.archive-meta {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.error-text {
+  color: #ba5148;
+  font-size: 26rpx;
+}

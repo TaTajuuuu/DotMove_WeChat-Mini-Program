@@ -1,0 +1,39 @@
+.state-card,
+.summary-card,
+.goal-row {
+  margin-top: 22rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.summary-card text,
+.goal-name,
+.goal-meta,
+.error-text {
+  display: block;
+}
+
+.summary-card text {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 26rpx;
+}
+
+.goal-name {
+  color: #20251f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.goal-meta {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.error-text {
+  color: #ba5148;
+  font-size: 26rpx;
+}

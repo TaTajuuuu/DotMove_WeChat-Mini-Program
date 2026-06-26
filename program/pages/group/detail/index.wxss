@@ -1,0 +1,80 @@
+.state-card,
+.info-card,
+.member-card {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+}
+
+.info-card,
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.info-value,
+.info-label,
+.section-title,
+.member-name,
+.member-meta,
+.error-text {
+  display: block;
+}
+
+.info-value,
+.section-title,
+.member-name {
+  color: #20251f;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.info-label,
+.member-meta {
+  margin-top: 8rpx;
+  color: #687064;
+  font-size: 24rpx;
+}
+
+.manage-btn,
+.secondary-btn {
+  min-width: 140rpx;
+  height: 72rpx;
+  border-radius: 8rpx;
+  color: #23613e;
+  background: #f0f4e8;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.notice {
+  margin-top: 20rpx;
+  padding: 18rpx;
+  border-radius: 8rpx;
+  color: #687064;
+  background: #f0f4e8;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.section {
+  margin-top: 32rpx;
+}
+
+.pill {
+  flex-shrink: 0;
+  padding: 8rpx 14rpx;
+  border-radius: 8rpx;
+  color: #23613e;
+  background: #f0f4e8;
+  font-size: 24rpx;
+}
+
+.error-text {
+  color: #ba5148;
+  font-size: 26rpx;
+}

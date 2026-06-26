@@ -1,0 +1,20 @@
+<view class="page records-page">
+  <text class="page-title">打卡记录</text>
+  <text class="page-desc">查看本人打卡、补卡和已编辑记录。</text>
+
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无记录。</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+
+  <view wx:else>
+    <view wx:for="{{records}}" wx:key="checkinRecordId" class="record-card">
+      <view class="record-head">
+        <text class="record-date">{{item.sportDate}}</text>
+        <text class="tag">{{item.isMakeup ? '补卡' : '打卡'}}{{item.status === 'edited' ? ' · 已编辑' : ''}}</text>
+      </view>
+      <text class="record-meta">热量 {{item.metrics.calories || '--'}} kcal · 时长 {{item.metrics.durationMinutes || '--'}} 分钟</text>
+      <text class="record-meta">照片 {{item.photos.length}} 张 · 修改 {{item.editCount}} 次</text>
+      <text wx:if="{{item.remark}}" class="record-remark">{{item.remark}}</text>
+    </view>
+  </view>
+</view>

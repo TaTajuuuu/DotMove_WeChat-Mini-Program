@@ -1,0 +1,46 @@
+<view class="page detail-page">
+  <view wx:if="{{pageState === 'loading'}}" class="state-card">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{pageState === 'error' || pageState === 'forbidden' || pageState === 'readonly'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+    <button class="secondary-btn" bindtap="handleRetry">重试</button>
+  </view>
+
+  <view wx:else>
+    <text class="page-title">{{group.name}}</text>
+    <text class="page-desc">{{group.status === 'active' ? '进行中' : '未开始'}} · {{group.monthKey}}</text>
+
+    <view class="info-card">
+      <view class="info-item">
+        <text class="info-value">{{group.activeMemberCount}}/{{group.maxMembers}}</text>
+        <text class="info-label">当前成员</text>
+      </view>
+      <view class="info-item">
+        <text class="info-value">{{statsSummary.groupCompletionRate === null ? '--' : statsSummary.groupCompletionRate + '%'}}</text>
+        <text class="info-label">完成率</text>
+      </view>
+      <button wx:if="{{group.canManage}}" class="manage-btn" bindtap="handleManage">管理</button>
+    </view>
+
+    <view class="notice">小组内有效成员可以互相查看目标、打卡照片、备注和统计。</view>
+
+    <view class="section">
+      <text class="section-title">成员信息</text>
+      <view
+        wx:for="{{members}}"
+        wx:key="membershipId"
+        class="member-card"
+        data-membership-id="{{item.membershipId}}"
+        bindtap="handleOpenMember"
+      >
+        <view>
+          <text class="member-name">{{item.nickname}}</text>
+          <text class="member-meta">{{item.role === 'creator' ? '创建者' : '成员'}} · {{item.targetStatus === 'unset' ? '未设置目标' : item.completed ? '已完成目标' : item.overallProgress + '%'}}</text>
+        </view>
+        <text class="pill">{{item.targetSummary.selectedGoalCount}} 项</text>
+      </view>
+    </view>
+  </view>
+</view>

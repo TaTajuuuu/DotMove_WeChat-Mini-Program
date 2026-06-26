@@ -1,0 +1,8 @@
+<view class="page">
+  <text class="page-title">{{title}}</text>
+  <text class="page-desc">{{description}}</text>
+  <view class="placeholder-card">
+    <text class="placeholder-label">归档成员目标详情页</text>
+    <text class="placeholder-text">{{label}}</text>
+  </view>
+</view>

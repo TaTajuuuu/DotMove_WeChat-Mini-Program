@@ -1,0 +1,103 @@
+.type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+.type-btn,
+.primary-btn,
+.secondary-btn {
+  height: 84rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.type-btn {
+  color: #23613e;
+  background: #f0f4e8;
+}
+
+.type-btn.active,
+.primary-btn {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.notice,
+.form-card,
+.success-card {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, .94);
+  color: #687064;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.field-label,
+.counter,
+.error-text,
+.success-title,
+.success-desc {
+  display: block;
+}
+
+.field-label {
+  color: #20251f;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.name-input {
+  height: 84rpx;
+  margin-top: 16rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #dfe5d8;
+  border-radius: 8rpx;
+  background: #fff;
+  font-size: 30rpx;
+}
+
+.counter {
+  margin-top: 10rpx;
+  text-align: right;
+  color: #8a9384;
+  font-size: 24rpx;
+}
+
+.error-text {
+  margin-top: 18rpx;
+  color: #ba5148;
+  font-size: 26rpx;
+}
+
+.primary-btn {
+  width: 100%;
+  margin-top: 28rpx;
+}
+
+.success-card {
+  color: #20251f;
+}
+
+.success-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.success-desc {
+  margin-top: 10rpx;
+  color: #687064;
+  font-size: 26rpx;
+}
+
+.secondary-btn {
+  width: 100%;
+  margin-top: 20rpx;
+  color: #23613e;
+  background: #f0f4e8;
+}

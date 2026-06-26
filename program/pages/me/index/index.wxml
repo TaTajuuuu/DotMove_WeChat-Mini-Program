@@ -1,0 +1,19 @@
+<view class="page me-page">
+  <text class="page-title">我的目标</text>
+  <text class="page-desc">查看当前小组目标摘要和运动记录入口。</text>
+
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无 active 或未开始小组。</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+
+  <view wx:else>
+    <view wx:for="{{groups}}" wx:key="groupId" class="group-row {{selectedGroupId === item.groupId ? 'selected' : ''}}" data-group-id="{{item.groupId}}" bindtap="handleSelectGroup">
+      <view>
+        <text class="group-name">{{item.name}}</text>
+        <text class="group-meta">{{item.nickname}} · {{item.status === 'active' ? '进行中' : '未开始'}}</text>
+      </view>
+      <text class="pill">{{item.targetSummary.status === 'unset' ? '未设置' : item.targetSummary.selectedGoalCount + ' 项'}}</text>
+    </view>
+    <button class="primary-btn" bindtap="handleOpenDetail">查看目标详情</button>
+  </view>
+</view>

@@ -1,0 +1,47 @@
+<view class="page makeup-page">
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <view wx:else>
+    <text class="page-title">补卡</text>
+    <text class="page-desc">仅可补昨日或前天的运动记录。</text>
+
+    <view class="field-card">
+      <text class="field-label">补卡日期</text>
+      <picker mode="selector" range="{{dateOptions}}" bindchange="handleDateChange">
+        <view class="picker-value">{{sportDate}}</view>
+      </picker>
+    </view>
+
+    <view class="field-card">
+      <text class="field-label">热量 kcal</text>
+      <input class="number-input" type="digit" data-field="calories" bindinput="handleMetricInput" />
+      <text class="field-label sub">运动时长 分钟</text>
+      <input class="number-input" type="digit" data-field="durationMinutes" bindinput="handleMetricInput" />
+      <text class="field-label sub">跑步 km</text>
+      <input class="number-input" type="digit" data-field="runningDistanceKm" bindinput="handleMetricInput" />
+      <text class="field-label sub">骑行 km</text>
+      <input class="number-input" type="digit" data-field="cyclingDistanceKm" bindinput="handleMetricInput" />
+      <checkbox-group bindchange="handleRingChange">
+        <label class="checkbox-label"><checkbox value="ringClosed" /> 三环闭合</label>
+      </checkbox-group>
+    </view>
+
+    <view class="field-card">
+      <button class="secondary-btn" bindtap="choosePhotos">选择照片</button>
+      <text class="hint">已选择 {{photos.length}} 张，需 1 至 3 张静态图片。</text>
+      <view wx:if="{{photos.length > 0}}" class="photo-preview-list">
+        <view wx:for="{{photos}}" wx:key="index" class="photo-preview-item">
+          <image class="photo-preview-img" src="{{item.tempFilePath}}" mode="aspectFill" />
+          <view class="photo-preview-remove" data-index="{{index}}" bindtap="removePhoto">×</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="field-card">
+      <textarea class="remark-input" maxlength="100" placeholder="备注运动状态，最多 100 字" bindinput="handleRemarkInput" />
+    </view>
+
+    <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+    <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">提交补卡</button>
+  </view>
+</view>

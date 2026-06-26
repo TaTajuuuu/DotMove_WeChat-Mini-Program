@@ -1,0 +1,13 @@
+<view class="page review-page">
+  <text class="page-title">月度回顾</text>
+  <text class="page-desc">只读查看已归档小组复盘。</text>
+  <view wx:if="{{pageState === 'loading'}}" class="state-card"><text>加载中...</text></view>
+  <view wx:elif="{{pageState === 'empty'}}" class="state-card"><text>暂无可查看归档。</text></view>
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card"><text class="error-text">{{errorMessage}}</text></view>
+  <view wx:else>
+    <view wx:for="{{archives}}" wx:key="archiveSnapshotId" class="archive-card" data-archive-id="{{item.archiveSnapshotId}}" bindtap="handleOpenArchive">
+      <text class="archive-title">{{item.groupName}}</text>
+      <text class="archive-meta">{{item.monthKey}} · {{item.activeMemberCount}} 人 · {{item.groupCompletionRate === null ? '--' : item.groupCompletionRate + '%'}}</text>
+    </view>
+  </view>
+</view>

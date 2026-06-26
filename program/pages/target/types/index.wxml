@@ -1,0 +1,26 @@
+<view class="page target-page">
+  <text class="page-title">目标设置</text>
+  <text class="page-desc">{{canEdit ? '选择本月运动目标类型和一点币。' : '目标已锁定，仅可查看。'}}</text>
+
+  <view class="goal-grid">
+    <view
+      wx:for="{{goalTypes}}"
+      wx:key="key"
+      class="goal-card {{selectedGoalTypes.indexOf(item.key) >= 0 ? 'selected' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="handleToggleGoal"
+    >
+      <text class="goal-name">{{item.name}}</text>
+      <text class="goal-desc">{{item.desc}}</text>
+    </view>
+  </view>
+
+  <view class="coin-card">
+    <text class="field-label">一点币</text>
+    <input class="coin-input" type="digit" disabled="{{!canEdit}}" value="{{coinValue}}" bindinput="handleCoinInput" />
+    <text class="hint">仅展示，不结算、不扣除、不返还。</text>
+  </view>
+
+  <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+  <button class="primary-btn" disabled="{{!canEdit}}" bindtap="handleNext">下一步：设置目标值</button>
+</view>

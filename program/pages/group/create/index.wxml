@@ -1,0 +1,35 @@
+<view class="page create-page">
+  <text class="page-title">创建小组</text>
+  <text class="page-desc">选择本月或下月，填写小组名称后生成邀请码。</text>
+
+  <view class="type-row">
+    <button class="type-btn {{groupType === 'currentMonth' ? 'active' : ''}}" data-type="currentMonth" bindtap="handleTypeChange">
+      本月小组
+    </button>
+    <button class="type-btn {{groupType === 'nextMonth' ? 'active' : ''}}" data-type="nextMonth" bindtap="handleTypeChange">
+      下月小组
+    </button>
+  </view>
+
+  <view class="notice">
+    <text wx:if="{{groupType === 'currentMonth'}}">本月小组创建后立即开始，成员设置目标后即可打卡。</text>
+    <text wx:else>下月小组创建后为未开始状态，开始前可设置昵称和目标。</text>
+  </view>
+
+  <view class="form-card">
+    <text class="field-label">小组名称</text>
+    <input class="name-input" maxlength="20" placeholder="1-20 个字符" value="{{name}}" bindinput="handleNameInput" />
+    <text class="counter">{{name.length}}/20</text>
+  </view>
+
+  <text wx:if="{{errorMessage}}" class="error-text">{{errorMessage}}</text>
+
+  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleCreate">创建小组</button>
+
+  <view wx:if="{{createdGroup}}" class="success-card">
+    <text class="success-title">创建成功</text>
+    <text class="success-desc">邀请码：{{createdGroup.inviteCode}}</text>
+    <text class="success-desc">{{createdGroup.status === 'active' ? '小组进行中' : '小组未开始'}}</text>
+    <button class="secondary-btn" bindtap="handleOpenGroup">进入小组</button>
+  </view>
+</view>

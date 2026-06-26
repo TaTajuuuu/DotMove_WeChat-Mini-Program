@@ -1,0 +1,68 @@
+<view class="page home-page">
+  <view class="hero">
+    <text class="eyebrow">一点运动</text>
+    <text class="page-title">我的运动小组</text>
+    <text class="page-desc">查看当前小组，创建或通过邀请码加入新的月度运动小组。</text>
+  </view>
+
+  <view wx:if="{{pageState === 'loading'}}" class="state-block">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{pageState === 'error' || pageState === 'forbidden'}}" class="state-block">
+    <text class="state-title">{{errorMessage}}</text>
+    <button class="primary-btn" bindtap="handleRetry">重试</button>
+  </view>
+
+  <view wx:else>
+    <view class="action-panel">
+      <button class="primary-btn" bindtap="handleCreateGroup">创建小组</button>
+      <view class="join-row">
+        <input class="invite-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
+        <button class="secondary-btn" bindtap="handleJoinGroup">加入</button>
+      </view>
+    </view>
+
+    <view wx:if="{{pageState === 'empty'}}" class="state-block">
+      <text class="state-title">暂无进行中或未开始的小组</text>
+      <text class="state-desc">创建本月或下月小组，也可以输入邀请码加入。</text>
+    </view>
+
+    <view wx:if="{{currentGroups.length}}" class="section">
+      <view class="section-head">
+        <text class="section-title">当前小组</text>
+      </view>
+      <view
+        wx:for="{{currentGroups}}"
+        wx:key="groupId"
+        class="group-card"
+        data-group-id="{{item.groupId}}"
+        bindtap="handleOpenGroup"
+      >
+        <view>
+          <text class="group-name">{{item.name}}</text>
+          <text class="group-meta">{{item.status === 'active' ? '进行中' : '未开始'}} · {{item.activeMemberCount}}/{{item.maxMembers}}</text>
+        </view>
+        <view class="target-pill {{item.targetSummary.status === 'unset' ? 'muted' : ''}}">
+          {{item.targetSummary.status === 'unset' ? '未设置目标' : item.targetSummary.selectedGoalCount + ' 项目标'}}
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{archiveSummaries.length}}" class="section">
+      <view class="section-head">
+        <text class="section-title">最近回顾</text>
+      </view>
+      <view
+        wx:for="{{archiveSummaries}}"
+        wx:key="archiveSnapshotId"
+        class="archive-row"
+        data-archive-id="{{item.archiveSnapshotId}}"
+        bindtap="handleOpenArchive"
+      >
+        <text>{{item.groupName}} · {{item.monthKey}}</text>
+        <text>{{item.groupCompletionRate === null ? '暂无完成率' : item.groupCompletionRate + '%'}}</text>
+      </view>
+    </view>
+  </view>
+</view>
