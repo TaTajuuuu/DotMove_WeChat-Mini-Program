@@ -27,6 +27,8 @@ const ErrorMessages = {
   PHOTO_UPLOAD_FAILED: "运动照片上传失败，请重试。",
   PHOTO_LOAD_FAILED: "照片加载失败，请重试。",
   REMARK_TOO_LONG: "备注最多 100 字。",
+  CONTENT_TEXT_REJECTED: "内容包含不适宜信息，请修改后重试。",
+  CONTENT_REVIEW_FAILED: "内容安全检查暂时不可用，请稍后重试。",
   STATS_TARGET_UNSET: "未设置目标。",
   STATS_NO_ACTIVE_MEMBER: "暂无有效成员。",
   ARCHIVE_NOT_FOUND: "暂无可查看归档。",

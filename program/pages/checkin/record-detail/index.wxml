@@ -1,0 +1,191 @@
+<view class="page">
+  <view class="nav">
+    <view class="back" bindtap="handleBack"></view>
+    <text class="nav-title">打卡详情</text>
+    <view class="capsule-placeholder"></view>
+  </view>
+
+  <view wx:if="{{pageState === 'loading'}}" class="state-card">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{pageState !== 'ready'}}" class="state-card">
+    <text class="error-text">{{errorMessage}}</text>
+    <button class="secondary-btn" bindtap="handleRetry">重试</button>
+  </view>
+
+  <view wx:else>
+    <view class="hero">
+      <view>
+        <text class="hero-title">{{member.nickname}}</text>
+        <text class="hero-subtitle">运动记录</text>
+        <text class="hero-desc">{{group.name}} · {{record.sportDateText}}</text>
+      </view>
+      <text class="badge">{{record.typeText}}</text>
+    </view>
+
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">记录信息</text>
+        <text class="tag">{{record.statusText}}</text>
+      </view>
+      <view class="field">
+        <text class="field-label">运动日期</text>
+        <text class="field-value">{{record.sportDateText}}</text>
+      </view>
+      <view class="field">
+        <text class="field-label">提交日期</text>
+        <text class="field-value">{{record.submitDateText}}</text>
+      </view>
+      <button
+        wx:if="{{record.canEdit && !editing}}"
+        class="edit-entry-btn"
+        bindtap="handleStartEdit"
+      >修改记录</button>
+    </view>
+
+    <view wx:if="{{editing}}" class="panel edit-panel">
+      <view class="section-head">
+        <text class="section-title">修改运动数据</text>
+        <text class="section-meta">仅限提交当天</text>
+      </view>
+
+      <view class="edit-field" wx:for="{{editFields}}" wx:key="key">
+        <text class="edit-label">{{item.label}}</text>
+        <view class="edit-input-wrap">
+          <input
+            class="edit-input"
+            type="digit"
+            value="{{editFieldValues[item.key]}}"
+            data-key="{{item.key}}"
+            bindinput="handleEditFieldInput"
+          />
+          <text class="edit-unit">{{item.unit}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{showEditRings}}" class="edit-field">
+        <view>
+          <text class="edit-label">三环闭合</text>
+          <text class="edit-hint">该运动日是否闭合三环</text>
+        </view>
+        <view class="switch {{editRingsClosed ? '' : 'off'}}" bindtap="handleToggleEditRings"></view>
+      </view>
+
+      <view class="edit-section-head">
+        <text class="edit-label">运动照片</text>
+        <text class="privacy-link" bindtap="handleOpenPrivacyContract">隐私指引 · {{editPhotos.length}}/3</text>
+      </view>
+      <view class="photo-grid edit-photo-grid">
+        <view
+          class="photo-item edit-photo-item"
+          wx:for="{{editPhotos}}"
+          wx:key="key"
+          data-index="{{index}}"
+          bindtap="handlePreviewEditPhoto"
+        >
+          <image
+            src="{{item.source === 'local' ? item.tempFilePath : item.url}}"
+            mode="aspectFill"
+          />
+          <view
+            class="remove-photo"
+            data-index="{{index}}"
+            catchtap="handleRemoveEditPhoto"
+          >×</view>
+        </view>
+        <view wx:if="{{editPhotos.length < 3}}" class="photo-item add-photo" bindtap="handleChooseEditPhoto">
+          <text class="add-photo-icon">+</text>
+          <text>添加照片</text>
+        </view>
+      </view>
+
+      <view class="edit-section-head remark-head">
+        <text class="edit-label">运动备注</text>
+        <text class="section-meta">{{editRemark.length}}/100</text>
+      </view>
+      <textarea
+        class="edit-remark"
+        maxlength="100"
+        placeholder="选填，记录运动感受..."
+        value="{{editRemark}}"
+        bindinput="handleEditRemarkInput"
+      />
+
+      <view wx:if="{{editErrorMessage}}" class="edit-error">{{editErrorMessage}}</view>
+      <view class="edit-actions">
+        <button class="cancel-edit-btn" disabled="{{saving}}" bindtap="handleCancelEdit">取消</button>
+        <button class="save-edit-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="handleSaveEdit">保存修改</button>
+      </view>
+    </view>
+
+    <view wx:if="{{!editing}}" class="panel">
+      <view class="section-head">
+        <text class="section-title">运动数据</text>
+        <text class="section-meta">{{metricItems.length}} 项</text>
+      </view>
+      <view class="metric-list">
+        <view class="metric" wx:for="{{metricItems}}" wx:key="key">
+          <text class="metric-label">{{item.label}}</text>
+          <text class="metric-value">{{item.value}}{{item.unit ? (' ' + item.unit) : ''}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!editing}}" class="panel">
+      <view class="section-head">
+        <text class="section-title">运动照片</text>
+        <text class="section-meta">{{photos.length}} 张</text>
+      </view>
+      <view class="photo-grid" wx:if="{{photos.length}}">
+        <view
+          class="photo-item"
+          wx:for="{{photos}}"
+          wx:key="fileId"
+          data-index="{{index}}"
+          bindtap="handlePreviewPhoto"
+        >
+          <image
+            wx:if="{{!item.loadFailed}}"
+            src="{{item.url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            binderror="handlePhotoError"
+          />
+          <view wx:else class="photo-failed">
+            <text>照片加载失败</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-hint">暂无照片</view>
+    </view>
+
+    <view wx:if="{{!editing}}" class="panel">
+      <view class="section-head">
+        <text class="section-title">运动备注</text>
+        <text class="section-meta">{{record.remark.length || 0}}/100</text>
+      </view>
+      <text class="remark">{{record.remark || '未填写备注'}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showPrivacyDialog}}" class="privacy-mask">
+    <view class="privacy-dialog">
+      <text class="privacy-title">运动照片隐私说明</text>
+      <text class="privacy-copy">你选择的运动照片将上传至微信云存储。内容安全审核通过后，同组有效成员可以在打卡详情中查看，用于相互监督。</text>
+      <text class="privacy-contract-link" bindtap="handleOpenPrivacyContract">查看《用户隐私保护指引》</text>
+      <view class="privacy-actions">
+        <button class="privacy-cancel-btn" bindtap="handleCancelPrivacyAuthorization">暂不使用</button>
+        <button
+          id="agree-btn"
+          class="privacy-agree-btn"
+          open-type="agreePrivacyAuthorization"
+          bindtap="handleAgreePrivacyAuthorization"
+          bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+        >同意并继续</button>
+      </view>
+    </view>
+  </view>
+
+  <custom-tab-bar />
+</view>

@@ -58,6 +58,34 @@
       </view>
     </view>
 
+    <!-- 运动日历 -->
+    <view class="card calendar-card" wx:if="{{calendarDays.length}}">
+      <view class="section-head">
+        <text class="section-title">运动日历</text>
+        <text class="calendar-month">{{calendarMonthLabel}}</text>
+      </view>
+      <view class="calendar-weekdays">
+        <text>日</text>
+        <text>一</text>
+        <text>二</text>
+        <text>三</text>
+        <text>四</text>
+        <text>五</text>
+        <text>六</text>
+      </view>
+      <view class="calendar-grid">
+        <view
+          wx:for="{{calendarDays}}"
+          wx:key="key"
+          class="calendar-day {{item.done ? 'done' : ''}} {{item.isBlank ? 'blank' : ''}} {{item.isToday ? 'today' : ''}}"
+        >{{item.day}}</view>
+      </view>
+      <view class="calendar-legend">
+        <view class="legend-item"><view class="legend-dot done"></view><text>有效运动日</text></view>
+        <view class="legend-item"><view class="legend-dot"></view><text>未打卡</text></view>
+      </view>
+    </view>
+
     <button class="primary-btn" bindtap="handleOpenRecords">查看打卡记录</button>
   </view>
   <custom-tab-bar />

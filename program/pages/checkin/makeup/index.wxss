@@ -173,7 +173,7 @@
 /* 日期选择网格 */
 .date-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20rpx;
 }
 
@@ -249,7 +249,7 @@
 /* 开关 */
 .toggle-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16rpx;
   align-items: center;
   padding: 24rpx;
@@ -303,7 +303,7 @@
 /* 照片网格 */
 .photo-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
   margin-bottom: 20rpx;
 }
@@ -371,4 +371,10 @@
 
 .primary-btn[disabled] {
   opacity: .55;
+}
+
+.privacy-link {
+  color: #23613e;
+  font-size: 24rpx;
+  font-weight: 700;
 }

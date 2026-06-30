@@ -100,6 +100,9 @@
         "makeupForExitedPeriod",
         "membershipActivePeriodSeq",
         "status",
+        "contentReviewStatus",
+        "contentRevision",
+        "contentReviewExpectedCount",
         "metrics",
         "photos",
         "editCount",
@@ -113,7 +116,25 @@
         { "name": "idx_userId_submitDate_isMakeup_status", "fields": ["userId", "submitDate", "isMakeup", "status"], "unique": false },
         { "name": "idx_groupId_monthKey_status", "fields": ["groupId", "monthKey", "status"], "unique": false },
         { "name": "idx_membershipId_monthKey_status", "fields": ["membershipId", "monthKey", "status"], "unique": false },
-        { "name": "idx_groupId_sportDate_status", "fields": ["groupId", "sportDate", "status"], "unique": false }
+        { "name": "idx_groupId_sportDate_status", "fields": ["groupId", "sportDate", "status"], "unique": false },
+        { "name": "idx_contentReviewStatus_updatedAt", "fields": ["contentReviewStatus", "updatedAt"], "unique": false }
+      ]
+    },
+    {
+      "name": "contentReviewTasks",
+      "purpose": "Track asynchronous image content review callbacks by trace ID and record revision.",
+      "requiredFields": [
+        "traceId",
+        "recordId",
+        "revision",
+        "fileId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "indexes": [
+        { "name": "uniq_traceId", "fields": ["traceId"], "unique": true },
+        { "name": "idx_recordId_revision_status", "fields": ["recordId", "revision", "status"], "unique": false }
       ]
     },
     {

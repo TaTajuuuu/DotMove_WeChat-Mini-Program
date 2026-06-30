@@ -11,6 +11,7 @@ function createServiceError(response) {
   const error = new Error(getErrorMessage(code, response && response.message));
   error.name = "ServiceError";
   error.code = code;
+  error.serverMessage = response && response.message ? response.message : "";
   error.pageState = getErrorPageState(code);
   error.traceId = response && response.traceId ? response.traceId : "";
   error.data = response ? response.data : null;
@@ -19,6 +20,7 @@ function createServiceError(response) {
 
 async function callYidianApi(domain, action, payload = {}, options = {}) {
   const requestId = options.requestId || createRequestId();
+  const timeout = options.timeout || 60000;
 
   if (options.loadingText) {
     wx.showLoading({
@@ -36,7 +38,7 @@ async function callYidianApi(domain, action, payload = {}, options = {}) {
         payload,
         requestId
       },
-      timeout: 15000
+      timeout
     });
     const response = cloudResult && cloudResult.result ? cloudResult.result : cloudResult;
 
@@ -50,6 +52,19 @@ async function callYidianApi(domain, action, payload = {}, options = {}) {
       requestId
     };
   } catch (error) {
+    const errorDetails = {
+      domain,
+      action,
+      requestId,
+      code: error && error.code ? error.code : "COMMON_SYSTEM_ERROR",
+      message: error && error.message ? error.message : "",
+      serverMessage: error && error.serverMessage ? error.serverMessage : "",
+      traceId: error && error.traceId ? error.traceId : "",
+      data: error && error.data ? error.data : null,
+      errMsg: error && error.errMsg ? error.errMsg : ""
+    };
+    console.error(`[yidianApi] call failed ${JSON.stringify(errorDetails)}`);
+
     if (error && error.name === "ServiceError") {
       throw error;
     }

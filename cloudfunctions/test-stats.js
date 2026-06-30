@@ -334,6 +334,60 @@ function testGroupCompletionRateNoMembers() {
   console.log('✅ 测试 9 通过\n');
 }
 
+// 测试用例 10: 内容审核状态控制统计资格
+function testContentReviewEligibility() {
+  console.log('=== 测试 10: 内容审核状态控制统计资格 ===');
+
+  const group = { _id: 'group1', monthKey: '2026-06', status: 'active' };
+  const membership = {
+    _id: 'm1',
+    status: 'active',
+    activePeriodSeq: 1
+  };
+  const targetConfig = {
+    status: 'locked',
+    selectedGoalTypes: ['calorieTotal'],
+    goals: { calorieTotal: { targetKcal: 1000 } }
+  };
+  const baseRecord = {
+    groupId: 'group1',
+    membershipId: 'm1',
+    monthKey: '2026-06',
+    sportDate: '2026-06-29',
+    membershipActivePeriodSeq: 1,
+    status: 'valid',
+    metrics: { calories: 500 }
+  };
+
+  assert(
+    stats.isEligibleRecord({ ...baseRecord }, membership, targetConfig, group),
+    '历史缺少审核字段的记录应按 passed 兼容'
+  );
+  assert(
+    !stats.isEligibleRecord({ ...baseRecord, contentReviewStatus: 'pending' }, membership, targetConfig, group),
+    'pending 记录不得计入统计'
+  );
+  assert(
+    stats.isEligibleRecord({ ...baseRecord, contentReviewStatus: 'passed' }, membership, targetConfig, group),
+    'passed 记录应具备统计资格'
+  );
+  assert(
+    !stats.isEligibleRecord({ ...baseRecord, contentReviewStatus: 'rejected' }, membership, targetConfig, group),
+    'rejected 记录不得计入统计'
+  );
+  assert(
+    stats.isRecordContextEligible(
+      { ...baseRecord, contentReviewStatus: 'pending' },
+      membership,
+      targetConfig,
+      group
+    ),
+    'pending 记录仍应保留业务上下文资格并占用物理次数'
+  );
+
+  console.log('✅ 测试 10 通过\n');
+}
+
 // 运行所有测试
 console.log('开始运行统计计算函数单元测试...\n');
 
@@ -347,6 +401,7 @@ try {
   testExitedRejoinEligibility();
   testGroupCompletionRate();
   testGroupCompletionRateNoMembers();
+  testContentReviewEligibility();
 
   console.log('🎉 所有测试通过！T16 统计计算功能实现正确。');
 } catch (error) {

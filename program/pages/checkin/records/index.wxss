@@ -193,7 +193,7 @@
 /* 日期筛选 */
 .date-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
 }
 .date-card {
@@ -226,6 +226,9 @@
   padding: 22rpx 0;
   border-bottom: 1rpx solid #eef0ea;
 }
+.record-item:active {
+  opacity: .68;
+}
 .record-item:last-child {
   border-bottom: none;
 }
@@ -240,11 +243,30 @@
   color: #23613e;
   white-space: nowrap;
 }
+.record-value-row {
+  display: flex;
+  gap: 14rpx;
+  align-items: center;
+}
+.record-chevron {
+  color: #23613e;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1;
+}
 .record-detail {
   margin-top: 10rpx;
   display: block;
   color: #687064;
   font-size: 24rpx;
+}
+
+.record-review-status {
+  display: block;
+  margin-top: 8rpx;
+  color: #9a6410;
+  font-size: 24rpx;
+  font-weight: 700;
 }
 
 /* 加载 & 空 */

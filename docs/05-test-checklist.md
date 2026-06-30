@@ -22,7 +22,7 @@
 
 ## 3. 数据库与云存储准备
 
-- [ ] 创建集合：`users`、`groups`、`memberships`、`targetConfigs`、`checkinRecords`、`archiveSnapshots`、`archiveMemberSnapshots`、`auditLogs`。
+- [ ] 创建集合：`users`、`groups`、`memberships`、`targetConfigs`、`checkinRecords`、`contentReviewTasks`、`archiveSnapshots`、`archiveMemberSnapshots`、`auditLogs`。
 - [ ] 按 `cloudfunctions/database.schema.json` 配置核心索引。
 - [ ] 运动照片通过微信云存储上传，记录中仅保存 `fileId/cloudPath` 等元信息。
 - [ ] `auditLogs` 不保存图片二进制、临时 URL、token 或大段备注全文。
@@ -65,6 +65,11 @@
 - [ ] 已选目标依赖的运动字段必须填写：热量、时长、跑步距离、骑行距离、三环闭合。
 - [ ] 提交当天可修改记录，非提交当天拒绝修改。
 - [ ] 修改后记录状态为 `edited`，并保留审计信息。
+- [ ] 备注不合规时在写入前拒绝；合规备注可正常提交。
+- [ ] 新记录图片审核状态先为 `pending`，本人可见但不计入统计。
+- [ ] 全部图片审核通过后状态为 `passed`，才计入统计并对同组成员可见。
+- [ ] 任一图片审核不通过后状态为 `rejected`，该记录照片被删除且不计入统计。
+- [ ] pending/rejected/failed 记录仍占用每日 5 次物理有效记录及每日补卡次数。
 
 ## 7. 查看与统计
 
@@ -124,6 +129,9 @@
 - [ ] 高优先级 Bug 清零。
 - [ ] 云函数部署成功。
 - [ ] 数据库集合与索引配置完成。
+- [ ] 用户隐私保护指引已声明照片选择和备注用途，真机可打开隐私指引。
+- [ ] `yidianApi` 已开通 `security.msgSecCheck` 和 `security.mediaCheckAsync` OpenAPI 权限。
+- [ ] `contentReviewCallback` 已部署为 HTTP 服务，明文回调验签和异步审核闭环测试通过。
 - [ ] 微信开发者工具真机预览通过。
 - [ ] 体验版上传成功并可在微信端测试。
 - [ ] 未引入 PRD/Spec 明确排除的点赞、评论、排行榜、商城、AI、通知、微信运动步数、自定义目标类型、一点币结算等功能。

@@ -89,18 +89,21 @@
       </view>
     </view>
 
-    <!-- 相关打卡面板 -->
+    <!-- 成员打卡记录 -->
     <view wx:if="{{memberStats.recentRecords && memberStats.recentRecords.length}}" class="panel" aria-label="最近打卡">
       <view class="section-head">
-        <text class="section-title">相关打卡</text>
-        <text class="section-meta">最近 {{memberStats.recentRecords.length}} 条</text>
+        <text class="section-title">打卡记录</text>
+        <text class="section-meta">共 {{memberStats.recentRecords.length}} 条，可查看详情</text>
       </view>
       <view class="field-list">
-        <block wx:for="{{memberStats.recentRecords}}" wx:key="date">
-          <view class="field">
+        <block wx:for="{{memberStats.recentRecords}}" wx:key="checkinRecordId">
+          <view class="field record-link" data-id="{{item.checkinRecordId}}" bindtap="handleOpenRecord">
             <view class="field-row">
               <text class="field-name">{{item.dateText}}</text>
-              <text class="field-value">{{item.calorieText}}</text>
+              <view class="record-value">
+                <text class="field-value">{{item.calorieText}}</text>
+                <text class="record-chevron">›</text>
+              </view>
             </view>
             <text class="field-desc">{{item.recordDesc}}</text>
           </view>

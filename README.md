@@ -40,6 +40,7 @@
 - [Tasks](docs/04-tasks.md)：可执行开发任务拆解（v0.1.1 已确认）
 - [Test Checklist](docs/05-test-checklist.md)：功能验收与回归测试清单（v0.2.0 已创建）
 - [Test Execution Guide](docs/test-execution-guide.md)：微信开发者工具、云开发控制台和体验版测试执行指南（v0.2.0 已创建）
+- [Release Gate Guide](docs/release-gate-guide.md)：隐私保护、内容安全、异步回调、当天修改记录与发布前验收。
 - [Change Log](docs/06-change-log.md)：需求、规格和实现变更记录（v0.1.0 已创建，Stage 7 待测试后补充）
 
 ## v1.0 范围摘要

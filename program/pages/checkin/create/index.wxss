@@ -37,6 +37,7 @@
 .section-head { display: flex; justify-content: space-between; gap: 16rpx; align-items: center; margin-bottom: 24rpx; }
 .section-title { font-size: 32rpx; font-weight: 800; color: #20251f; }
 .section-meta { color: #8a9384; font-size: 24rpx; }
+.privacy-link { color: #23613e; font-size: 24rpx; font-weight: 700; }
 .tag { padding: 10rpx 20rpx; border-radius: 999rpx; font-size: 24rpx; font-weight: 800; }
 .tag.good { color: #fff; background: #2f7d4f; }
 
@@ -52,7 +53,7 @@
 .field-meta { color: #8a9384; font-size: 24rpx; }
 
 /* 开关 */
-.toggle-row { display: grid; grid-template-columns: 1fr auto; gap: 16rpx; align-items: center; padding: 24rpx; border: 1rpx solid #dfe5d8; border-radius: 16rpx; background: #fbfcf8; }
+.toggle-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16rpx; align-items: center; padding: 24rpx; border: 1rpx solid #dfe5d8; border-radius: 16rpx; background: #fbfcf8; }
 .toggle-title { font-size: 30rpx; font-weight: 800; color: #20251f; }
 .toggle-desc { display: block; margin-top: 8rpx; color: #687064; font-size: 24rpx; }
 .switch { width: 92rpx; height: 52rpx; border-radius: 52rpx; background: #2f7d4f; position: relative; }
@@ -61,7 +62,7 @@
 .switch.off::after { right: auto; left: 6rpx; }
 
 /* 照片 */
-.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }
+.photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; }
 .photo-slot { min-height: 160rpx; padding: 24rpx; border: 1rpx solid #dfe5d8; border-radius: 16rpx; background: #fbfcf8; display: grid; place-items: center; color: #8a9384; font-size: 26rpx; font-weight: 800; }
 .photo-slot.filled { color: #fff; background: linear-gradient(135deg, #2f7d4f, #f0b441); border-color: transparent; }
 
@@ -74,7 +75,7 @@
 /* 按钮 */
 .primary-btn { width: 100%; min-height: 96rpx; margin-top: 28rpx; border: 0; border-radius: 16rpx; color: #fff; background: #2f7d4f; font-size: 32rpx; font-weight: 800; box-shadow: 0 20rpx 48rpx rgba(47,125,79,.22); }
 .primary-btn[disabled] { opacity: .55; }
-.primary-btn.small { width: auto; min-height: 76rpx; padding: 0 48rpx; margin-top: 0; display: inline-block; font-size: 28rpx; }
+.primary-btn.small { width: auto; min-height: 76rpx; padding: 0 48rpx; margin-top: 0; display: inline-flex; font-size: 28rpx; }
 .secondary-link { display: block; margin-top: 24rpx; color: #23613e; font-size: 28rpx; font-weight: 800; text-align: center; }
 .secondary-line-btn { width: auto; min-height: 76rpx; padding: 0 48rpx; margin-top: 16rpx; border: 1rpx solid #dfe5d8; border-radius: 16rpx; background: transparent; color: #23613e; font-size: 28rpx; font-weight: 800; }
 

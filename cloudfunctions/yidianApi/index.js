@@ -8,6 +8,7 @@ const targetDomain = require("./domains/target");
 const checkinDomain = require("./domains/checkin");
 const reviewDomain = require("./domains/review");
 const photoDomain = require("./domains/photo");
+const contentReviewDomain = require("./domains/contentReview");
 const systemJobDomain = require("./domains/systemJob");
 
 cloud.init({
@@ -21,6 +22,7 @@ const domains = {
   checkin: checkinDomain,
   review: reviewDomain,
   photo: photoDomain,
+  contentReview: contentReviewDomain,
   systemJob: systemJobDomain
 };
 
@@ -113,6 +115,15 @@ exports.main = async (event = {}, context = {}) => {
     });
     return ok(data, { traceId });
   } catch (error) {
+    console.error("[yidianApi] request failed", {
+      domain,
+      action,
+      traceId,
+      code: error && error.code ? error.code : ErrorCodes.COMMON_SYSTEM_ERROR,
+      message: error && error.message ? error.message : "",
+      stack: error && error.stack ? error.stack : ""
+    });
+
     return fail(error.code || ErrorCodes.COMMON_SYSTEM_ERROR, error.message || "", {
       traceId,
       data: error.details || null

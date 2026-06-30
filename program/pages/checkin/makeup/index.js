@@ -1,6 +1,7 @@
 const checkinService = require("../../../services/checkin");
 const authService = require("../../../services/auth");
 const { uploadCheckinPhotos, deleteCloudFiles } = require("../../../utils/photo");
+const privacyUtils = require("../../../utils/privacy");
 const { routes } = require("../../../config/routes");
 const { formatDateKey, getYesterdayDateKey, getDayBeforeYesterdayDateKey } = require("../../../utils/date");
 const { PageState } = require("../../../config/page-states");
@@ -41,6 +42,10 @@ Page({
     ringsClosed: false,
     photos: [],
     remark: "",
+    showPrivacyDialog: false,
+    pendingPhotoCount: 1,
+    remainingDailyMakeupCount: 3,
+    remainingSportDateCount: 5,
     submitting: false
   },
 
@@ -69,7 +74,10 @@ Page({
 
   async loadContext(groupId) {
     try {
-      const result = await checkinService.getCheckinContext({ groupId });
+      const result = await checkinService.getCheckinContext({
+        groupId,
+        sportDate: this.data.selectedDate
+      });
       const context = result.data || {};
       const selectedGoalTypes = (context.targetConfig && context.targetConfig.selectedGoalTypes) || [];
       const goalResult = buildGoalFields(selectedGoalTypes);
@@ -78,6 +86,12 @@ Page({
         groupName: this.data.groupName || (context.group && context.group.name) || "",
         goalFields: goalResult.fields,
         showRings: goalResult.showRings,
+        remainingDailyMakeupCount: Number.isFinite(context.remainingDailyMakeupCount)
+          ? context.remainingDailyMakeupCount
+          : 3,
+        remainingSportDateCount: Number.isFinite(context.remainingSportDateCount)
+          ? context.remainingSportDateCount
+          : 5,
         pageState: PageState.READY,
         errorMessage: ""
       });
@@ -87,7 +101,29 @@ Page({
   },
 
   handleDateSelect(event) {
-    this.setData({ selectedDate: event.currentTarget.dataset.date, errorMessage: "" });
+    const selectedDate = event.currentTarget.dataset.date;
+    this.setData({ selectedDate, errorMessage: "" });
+    this.loadLimits(selectedDate);
+  },
+
+  async loadLimits(sportDate) {
+    try {
+      const result = await checkinService.getCheckinContext({
+        groupId: this.data.groupId,
+        sportDate
+      });
+      const context = result.data || {};
+      this.setData({
+        remainingDailyMakeupCount: Number.isFinite(context.remainingDailyMakeupCount)
+          ? context.remainingDailyMakeupCount
+          : this.data.remainingDailyMakeupCount,
+        remainingSportDateCount: Number.isFinite(context.remainingSportDateCount)
+          ? context.remainingSportDateCount
+          : this.data.remainingSportDateCount
+      });
+    } catch (error) {
+      this.setData({ errorMessage: error.message || "补卡次数状态加载失败。" });
+    }
   },
 
   handleFieldInput(event) {
@@ -107,18 +143,76 @@ Page({
     const remain = 3 - this.data.photos.length;
     if (remain <= 0) return;
 
-    wx.chooseMedia({
-      count: remain,
-      mediaType: ["image"],
-      sizeType: ["compressed"],
-      success: (res) => {
+    privacyUtils.setPrivacyPromptHandler(() => {
+      this.setData({
+        showPrivacyDialog: true,
+        pendingPhotoCount: remain,
+        errorMessage: ""
+      });
+    });
+    this.openPhotoPicker(remain);
+  },
+
+  openPhotoPicker(count) {
+    privacyUtils.chooseImageMedia({ count })
+      .then((res) => {
         const newFiles = (res.tempFiles || []).map((file) => ({
           tempFilePath: file.tempFilePath,
           size: file.size
         }));
-        this.setData({ photos: this.data.photos.concat(newFiles), errorMessage: "" });
-      }
+        if (newFiles.length > 0) {
+          this.setData({ photos: this.data.photos.concat(newFiles), errorMessage: "" });
+        }
+      })
+      .catch((error) => {
+        if (error && error.code === "PRIVACY_AUTH_REQUIRED") {
+          if (this._privacyDeclined) {
+            this._privacyDeclined = false;
+            this.setData({
+              showPrivacyDialog: false,
+              errorMessage: "需要同意隐私保护指引后才能选择运动照片。"
+            });
+            return;
+          }
+          privacyUtils.clearPrivacyAuthorization();
+          this.setData({
+            showPrivacyDialog: true,
+            pendingPhotoCount: count,
+            errorMessage: ""
+          });
+          return;
+        }
+        const errorMessage = error.message || "需要同意隐私保护指引后才能选择照片。";
+        this.setData({ errorMessage });
+        wx.showToast({ title: errorMessage, icon: "none" });
+      });
+  },
+
+  handleAgreePrivacyAuthorization() {
+    if (this._privacyAgreeInProgress) return;
+    this._privacyAgreeInProgress = true;
+    const count = this.data.pendingPhotoCount || 1;
+    privacyUtils.markPrivacyAuthorized();
+    this.setData({ showPrivacyDialog: false });
+    if (!privacyUtils.resolvePrivacyAuthorization(true)) {
+      this.openPhotoPicker(count);
+    }
+    setTimeout(() => {
+      this._privacyAgreeInProgress = false;
+    }, 500);
+  },
+
+  handleCancelPrivacyAuthorization() {
+    this._privacyDeclined = true;
+    privacyUtils.resolvePrivacyAuthorization(false);
+    this.setData({
+      showPrivacyDialog: false,
+      errorMessage: "需要同意隐私保护指引后才能选择运动照片。"
     });
+  },
+
+  handleOpenPrivacyContract() {
+    privacyUtils.openPrivacyContract();
   },
 
   handlePreviewPhoto(event) {
@@ -182,7 +276,7 @@ Page({
       });
       wx.hideLoading();
 
-      await checkinService.createMakeup({
+      const result = await checkinService.createMakeup({
         groupId: this.data.groupId,
         sportDate: this.data.selectedDate,
         metrics,
@@ -191,6 +285,12 @@ Page({
         requestId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
       }, { loadingText: "提交中" });
 
+      wx.showToast({
+        title: result.data && result.data.contentReviewStatus === "failed"
+          ? "已保存，审核提交失败"
+          : "已提交审核",
+        icon: "none"
+      });
       wx.redirectTo({ url: `${routes.checkinRecords}?groupId=${this.data.groupId}` });
     } catch (error) {
       if (uploadedPhotos.length > 0) {

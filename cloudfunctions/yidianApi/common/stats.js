@@ -31,7 +31,13 @@ function isTargetConfigured(targetConfig) {
   );
 }
 
-function isEligibleRecord(record, membership, targetConfig, group) {
+function getContentReviewStatus(record) {
+  return record && record.contentReviewStatus
+    ? record.contentReviewStatus
+    : "passed";
+}
+
+function isRecordContextEligible(record, membership, targetConfig, group) {
   if (!record || !membership || !targetConfig || !group) {
     return false;
   }
@@ -51,6 +57,11 @@ function isEligibleRecord(record, membership, targetConfig, group) {
     return false;
   }
   return record.membershipActivePeriodSeq === membership.activePeriodSeq || record.makeupForExitedPeriod === true;
+}
+
+function isEligibleRecord(record, membership, targetConfig, group) {
+  return isRecordContextEligible(record, membership, targetConfig, group) &&
+    getContentReviewStatus(record) === "passed";
 }
 
 function sumBy(records, field) {
@@ -282,5 +293,7 @@ module.exports = {
   calculateGroupStats,
   calculateMemberStats,
   createEmptyStatsResult,
-  isEligibleRecord
+  getContentReviewStatus,
+  isEligibleRecord,
+  isRecordContextEligible
 };

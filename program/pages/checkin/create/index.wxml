@@ -60,7 +60,7 @@
     <view class="card">
       <view class="section-head">
         <text class="section-title">今日记录</text>
-        <text class="tag good">进行中</text>
+        <text class="tag {{remainingTodayCount > 0 ? 'good' : 'warn'}}">剩余 {{remainingTodayCount}} 次</text>
       </view>
       <view class="field-list">
         <view class="field-item">
@@ -79,6 +79,9 @@
           <text class="field-desc">{{item.desc}}</text>
         </view>
       </view>
+      <view class="notice limit-notice">
+        <text>同一运动日期最多保留 5 条有效打卡或补卡记录。</text>
+      </view>
     </view>
 
     <view class="panel" wx:if="{{showRings}}">
@@ -94,7 +97,7 @@
     <view class="panel">
       <view class="section-head">
         <text class="section-title">运动照片</text>
-        <text class="section-meta">{{photos.length}}/3</text>
+        <text class="section-meta privacy-link" bindtap="handleOpenPrivacyContract">隐私指引 · {{photos.length}}/3</text>
       </view>
       <view class="photo-grid">
         <block wx:for="{{photos}}" wx:key="*this">
@@ -120,8 +123,26 @@
       <text>{{errorMessage}}</text>
     </view>
 
-    <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">提交打卡</button>
+    <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting || remainingTodayCount <= 0}}" bindtap="handleSubmit">提交打卡</button>
     <text class="secondary-link" bindtap="handleGoMakeup">需要补交记录？</text>
+  </view>
+
+  <view wx:if="{{showPrivacyDialog}}" class="privacy-mask">
+    <view class="privacy-dialog">
+      <text class="privacy-title">运动照片隐私说明</text>
+      <text class="privacy-copy">你选择的运动照片将上传至微信云存储。内容安全审核通过后，同组有效成员可以在打卡详情中查看，用于相互监督。</text>
+      <text class="privacy-contract-link" bindtap="handleOpenPrivacyContract">查看《用户隐私保护指引》</text>
+      <view class="privacy-actions">
+        <button class="privacy-cancel-btn" bindtap="handleCancelPrivacyAuthorization">暂不使用</button>
+        <button
+          id="agree-btn"
+          class="privacy-agree-btn"
+          open-type="agreePrivacyAuthorization"
+          bindtap="handleAgreePrivacyAuthorization"
+          bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+        >同意并继续</button>
+      </view>
+    </view>
   </view>
 
   <custom-tab-bar/>

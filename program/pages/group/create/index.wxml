@@ -60,6 +60,18 @@
       </view>
     </view>
 
+    <!-- 创建者昵称 -->
+    <view class="field-block">
+      <view class="label-row">
+        <text class="field-label">我的昵称</text>
+        <text class="helper">1-12 个字符</text>
+      </view>
+      <view class="input-wrap">
+        <input class="field-input" maxlength="12" placeholder="其他成员看到的昵称" value="{{nickname}}" bindinput="handleNicknameInput" />
+        <text class="input-count">{{nickname.length}}/12</text>
+      </view>
+    </view>
+
     <!-- 提示 -->
     <view wx:if="{{groupType === 'nextMonth'}}" class="notice">
       <text>下月小组开始前不可打卡，成员可设置昵称和目标。</text>
@@ -72,7 +84,7 @@
   </view>
 
   <!-- 创建按钮 -->
-  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleCreate">创建并生成邀请</button>
+  <button wx:if="{{!createdGroup}}" class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleCreate">创建并生成邀请</button>
 
   <!-- 创建成功 -->
   <view wx:if="{{createdGroup}}" class="success-card">
@@ -84,11 +96,11 @@
       <view class="tag {{createdGroup.status === 'active' ? 'active' : ''}}">{{createdGroup.status === 'active' ? '进行中' : '未开始'}}</view>
     </view>
     <view class="invite-code">{{createdGroup.inviteCode}}</view>
-    <button class="primary-btn" bindtap="handleSetTarget" style="margin-top: 28rpx;">去设置目标</button>
-    <view class="secondary-actions">
-      <button class="ghost-btn" bindtap="handleShareToChat">微信群分享</button>
-      <button class="ghost-btn" bindtap="handleCopyCode">复制邀请码</button>
+    <view class="invite-actions">
+      <button class="invite-action-btn" open-type="share">微信群分享</button>
+      <button class="invite-action-btn" bindtap="handleCopyCode">复制邀请码</button>
     </view>
+    <button class="target-action-btn" bindtap="handleSetTarget">去设置目标</button>
   </view>
 
   <!-- 自定义底部导航 -->

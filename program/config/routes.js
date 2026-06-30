@@ -12,6 +12,7 @@ const routes = {
   memberTargetDetail: "/pages/member/target-detail/index",
   makeup: "/pages/checkin/makeup/index",
   checkinRecords: "/pages/checkin/records/index",
+  checkinRecordDetail: "/pages/checkin/record-detail/index",
   myTargetDetail: "/pages/me/target-detail/index",
   reviewDetail: "/pages/review/detail/index",
   reviewMemberDetail: "/pages/review/member-detail/index"

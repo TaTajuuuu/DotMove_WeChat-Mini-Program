@@ -96,12 +96,22 @@
       <text class="section-meta">最近 {{filteredRecords.length}} 条</text>
     </view>
     <view class="field-list" wx:if="{{filteredRecords.length > 0}}">
-      <view class="field record-item" wx:for="{{filteredRecords}}" wx:key="checkinRecordId" data-id="{{item.checkinRecordId}}">
+      <view
+        class="field record-item"
+        wx:for="{{filteredRecords}}"
+        wx:key="checkinRecordId"
+        data-id="{{item.checkinRecordId}}"
+        bindtap="handleOpenRecord"
+      >
         <view class="field-row">
           <text class="record-date">{{item.displayDate}}</text>
-          <text class="record-calories" wx:if="{{item.calories > 0}}">{{item.calories}} kcal</text>
+          <view class="record-value-row">
+            <text class="record-calories" wx:if="{{item.calories > 0}}">{{item.calories}} kcal</text>
+            <text class="record-chevron">›</text>
+          </view>
         </view>
         <text class="record-detail">{{item.duration > 0 ? (item.duration + ' 分钟') : ''}}{{item.ringsClosed ? ' · 三环闭合' : ''}}{{item.photoCount > 0 ? (' · ' + item.photoCount + ' 张照片') : ''}}</text>
+        <text wx:if="{{item.reviewStatusText}}" class="record-review-status">{{item.reviewStatusText}}</text>
       </view>
     </view>
     <view wx:else class="empty-hint">

@@ -1,5 +1,21 @@
 const targetService = require("../../../services/target");
+const { routes } = require("../../../config/routes");
 const { PageState } = require("../../../config/page-states");
+
+const GOAL_TYPE_MAP = {
+  calorieTotal: { label: "月总最低热量", unit: "kcal" },
+  durationTotal: { label: "运动时长", unit: "小时", divisor: 60 },
+  exerciseDays: { label: "运动天数", unit: "天" },
+  exerciseTimes: { label: "运动次数", unit: "次" },
+  runningDistance: { label: "跑步距离", unit: "km" },
+  cyclingDistance: { label: "骑行距离", unit: "km" },
+  ringClosedDays: { label: "三环闭合", unit: "天" }
+};
+
+function formatGoalNumber(value, divisor = 1) {
+  const number = Number(value || 0) / divisor;
+  return Number.isInteger(number) ? String(number) : String(Math.round(number * 100) / 100);
+}
 
 Page({
   data: {
@@ -126,17 +142,11 @@ Page({
         // 预计算显示文本
         progressItem.goalTypeText = this.getGoalTypeText(item.goalType);
 
-        // 进度文本
-        switch (item.goalType) {
-          case 'duration':
-            progressItem.progressText = `${item.doneValue} / ${item.targetValue} 小时`;
-            break;
-          case 'calories':
-            progressItem.progressText = `${item.doneValue} / ${item.targetValue}`;
-            break;
-          default:
-            progressItem.progressText = `${item.doneValue} / ${item.targetValue}`;
-        }
+        const goalConfig = GOAL_TYPE_MAP[item.goalType] || { unit: "", divisor: 1 };
+        const divisor = goalConfig.divisor || 1;
+        const doneValue = formatGoalNumber(item.doneValue, divisor);
+        const targetValue = formatGoalNumber(item.targetValue, divisor);
+        progressItem.progressText = `${doneValue} / ${targetValue}${goalConfig.unit ? ` ${goalConfig.unit}` : ""}`;
 
         // 达成描述
         if (item.achievedAt) {
@@ -162,14 +172,16 @@ Page({
         recordItem.dateText = this.formatDate(record.date, true);
 
         // 热量文本
-        if (record.isMakeup) {
-          recordItem.calorieText = "补卡";
-        } else {
-          recordItem.calorieText = `${record.calorie || 0} kcal`;
-        }
+        recordItem.calorieText = record.calorie > 0 ? `${record.calorie} kcal` : (record.isMakeup ? "补卡" : "--");
 
         // 记录描述
         const descParts = [];
+        if (record.isMakeup) {
+          descParts.push("补卡");
+        }
+        if (record.status === "edited") {
+          descParts.push("已编辑");
+        }
         if (record.duration) {
           descParts.push(`${record.duration} 分钟`);
         }
@@ -178,6 +190,9 @@ Page({
         }
         if (record.photoCount > 0) {
           descParts.push(`${record.photoCount} 张照片`);
+        }
+        if (record.hasRemark) {
+          descParts.push("有备注");
         }
         recordItem.recordDesc = descParts.join(" · ");
 
@@ -192,14 +207,15 @@ Page({
    * 获取目标类型的中文文本
    */
   getGoalTypeText(goalType) {
-    const typeMap = {
-      'calories': '月总最低热量',
-      'duration': '运动时长',
-      'days': '运动天数',
-      'sessions': '运动次数',
-      'triple_ring': '三环闭合'
-    };
-    return typeMap[goalType] || goalType;
+    return GOAL_TYPE_MAP[goalType] ? GOAL_TYPE_MAP[goalType].label : goalType;
+  },
+
+  handleOpenRecord(event) {
+    const checkinRecordId = event.currentTarget.dataset.id;
+    if (!checkinRecordId) return;
+    wx.navigateTo({
+      url: `${routes.checkinRecordDetail}?checkinRecordId=${checkinRecordId}`
+    });
   },
 
   /**

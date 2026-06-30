@@ -7,7 +7,16 @@ const {
   parseDateKeyStart
 } = require("../common/date");
 const { AppError, ErrorCodes } = require("../common/errors");
-const { calculateMemberStats, isEligibleRecord } = require("../common/stats");
+const {
+  calculateMemberStats,
+  getContentReviewStatus,
+  isEligibleRecord,
+  isRecordContextEligible
+} = require("../common/stats");
+const {
+  assertTextContentSafe,
+  submitPhotoReviews
+} = require("../common/contentReview");
 
 const EFFECTIVE_RECORD_STATUSES = new Set(["valid", "edited"]);
 const STATIC_IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp)$/i;
@@ -34,8 +43,19 @@ async function findOne(collection, query) {
 }
 
 async function findMany(collection, query) {
-  const result = await collection.where(query).get();
-  return result.data || [];
+  const rows = [];
+  const pageSize = 100;
+  let offset = 0;
+
+  while (true) {
+    const result = await collection.where(query).skip(offset).limit(pageSize).get();
+    const page = result.data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+    offset += page.length;
+  }
+
+  return rows;
 }
 
 async function findGroupById(db, groupId) {
@@ -46,12 +66,26 @@ async function findMembership(db, groupId, userId) {
   return findOne(db.collection("memberships"), { groupId, userId });
 }
 
+async function findMembershipById(db, membershipId) {
+  return findOne(db.collection("memberships"), { _id: membershipId });
+}
+
 async function findTargetConfig(db, groupId, membershipId, monthKey) {
   return findOne(db.collection("targetConfigs"), { groupId, membershipId, monthKey });
 }
 
 async function findCheckinRecord(db, checkinRecordId) {
   return findOne(db.collection("checkinRecords"), { _id: checkinRecordId });
+}
+
+async function refreshResultReviewStatus(db, resultData) {
+  const recordId = resultData && resultData.checkinRecordId;
+  if (!recordId) return resultData;
+  const record = await findCheckinRecord(db, recordId);
+  return {
+    ...resultData,
+    contentReviewStatus: getContentReviewStatus(record)
+  };
 }
 
 async function findActionAudit(db, actionType, actorUserId, requestId) {
@@ -220,6 +254,79 @@ function isEffectiveRecord(record) {
   return EFFECTIVE_RECORD_STATUSES.has(record.status);
 }
 
+async function resolveRecordPhotos(cloud, photos) {
+  const sourcePhotos = Array.isArray(photos) ? photos : [];
+  const fileIds = sourcePhotos
+    .map((photo) => trimString(photo.fileId || photo.url))
+    .filter((fileId) => fileId.startsWith("cloud://"));
+  let tempUrlByFileId = new Map();
+
+  if (fileIds.length > 0) {
+    try {
+      const result = await cloud.getTempFileURL({ fileList: fileIds });
+      tempUrlByFileId = new Map((result.fileList || []).map((file) => [
+        file.fileID,
+        file.tempFileURL || ""
+      ]));
+    } catch (error) {
+      tempUrlByFileId = new Map();
+    }
+  }
+
+  return sourcePhotos.map((photo, index) => {
+    const fileId = trimString(photo.fileId || photo.url);
+    const directUrl = trimString(photo.url);
+    return {
+      fileId,
+      url: tempUrlByFileId.get(fileId) || (directUrl.startsWith("http") ? directUrl : fileId),
+      cloudPath: trimString(photo.cloudPath),
+      name: trimString(photo.name),
+      mimeType: trimString(photo.mimeType),
+      sort: Number(photo.sort || index + 1),
+      loadFailed: !tempUrlByFileId.get(fileId) && !directUrl && !fileId
+    };
+  }).sort((left, right) => left.sort - right.sort);
+}
+
+async function startContentReview({
+  cloud,
+  db,
+  currentUser,
+  recordId,
+  revision,
+  photos
+}) {
+  try {
+    await submitPhotoReviews({
+      cloud,
+      db,
+      openid: currentUser.openid,
+      recordId,
+      revision,
+      photos
+    });
+    return "pending";
+  } catch (error) {
+    const now = new Date();
+    await db.collection("checkinRecords").doc(recordId).update({
+      data: {
+        contentReviewStatus: "failed",
+        contentReviewReason: "submitFailed",
+        contentReviewCompletedAt: now,
+        updatedAt: now
+      }
+    });
+    console.error("[contentReview] failed to submit photo review", {
+      recordId,
+      revision,
+      stage: "submitPhotoReviews",
+      code: error && error.code,
+      errMsg: trimString(error && (error.errMsg || error.message))
+    });
+    return "failed";
+  }
+}
+
 async function countEffectiveRecords(db, groupId, membershipId, sportDate) {
   const records = await findMany(db.collection("checkinRecords"), {
     groupId,
@@ -295,7 +402,7 @@ async function writeAuditLog(db, data) {
   await db.collection("auditLogs").add({ data });
 }
 
-function toContextResult(group, membership, targetConfig, remainingTodayCount) {
+function toContextResult(group, membership, targetConfig, limits) {
   return {
     group: {
       groupId: group._id,
@@ -315,7 +422,9 @@ function toContextResult(group, membership, targetConfig, remainingTodayCount) {
       goals: targetConfig.goals,
       status: targetConfig.status
     },
-    remainingTodayCount
+    remainingTodayCount: limits.remainingTodayCount,
+    remainingSportDateCount: limits.remainingSportDateCount,
+    remainingDailyMakeupCount: limits.remainingDailyMakeupCount
   };
 }
 
@@ -327,9 +436,20 @@ module.exports = {
     const groupId = normalizeId(payload.groupId, "groupId");
     const { group, membership, targetConfig } = await loadCheckinContext({ db, currentUser, groupId });
     const todayKey = formatDateKey();
-    const effectiveCount = await countEffectiveRecords(db, groupId, membership._id, todayKey);
+    const sportDate = trimString(payload.sportDate) || todayKey;
+    const [todayCount, sportDateCount, dailyMakeupCount] = await Promise.all([
+      countEffectiveRecords(db, groupId, membership._id, todayKey),
+      sportDate === todayKey
+        ? Promise.resolve(null)
+        : countEffectiveRecords(db, groupId, membership._id, sportDate),
+      countDailyMakeups(db, currentUser.userId, todayKey)
+    ]);
 
-    return toContextResult(group, membership, targetConfig, Math.max(5 - effectiveCount, 0));
+    return toContextResult(group, membership, targetConfig, {
+      remainingTodayCount: Math.max(5 - todayCount, 0),
+      remainingSportDateCount: Math.max(5 - (sportDateCount === null ? todayCount : sportDateCount), 0),
+      remainingDailyMakeupCount: Math.max(3 - dailyMakeupCount, 0)
+    });
   },
 
   async createCheckin({ payload = {}, event = {}, cloud, context, traceId }) {
@@ -340,7 +460,7 @@ module.exports = {
     const repeatedAudit = await findActionAudit(db, "CHECKIN_CREATE", currentUser.userId, requestId);
 
     if (repeatedAudit && repeatedAudit.resultData) {
-      return repeatedAudit.resultData;
+      return refreshResultReviewStatus(db, repeatedAudit.resultData);
     }
 
     if (repeatedAudit) {
@@ -356,63 +476,90 @@ module.exports = {
       throw new AppError(ErrorCodes.CHECKIN_INVALID_METRICS, "", { field: "sportDate" });
     }
 
-    const effectiveCount = await countEffectiveRecords(db, groupId, membership._id, sportDate);
-    if (effectiveCount >= 5) {
-      throw new AppError(ErrorCodes.CHECKIN_LIMIT_REACHED, "", { groupId, membershipId: membership._id, sportDate });
-    }
-
     const metrics = normalizeMetrics(payload.metrics, targetConfig.selectedGoalTypes);
     const photos = normalizePhotos(payload.photos);
     const remark = normalizeRemark(payload.remark);
+    await assertTextContentSafe(cloud, currentUser.openid, remark);
     const now = new Date();
-    const addResult = await db.collection("checkinRecords").add({
-      data: {
+    const contentRevision = 1;
+    const resultData = await db.runTransaction(async (transaction) => {
+      const transactionAudit = await findActionAudit(transaction, "CHECKIN_CREATE", currentUser.userId, requestId);
+      if (transactionAudit && transactionAudit.resultData) {
+        return transactionAudit.resultData;
+      }
+
+      const effectiveCount = await countEffectiveRecords(transaction, groupId, membership._id, sportDate);
+      if (effectiveCount >= 5) {
+        throw new AppError(ErrorCodes.CHECKIN_LIMIT_REACHED, "", { groupId, membershipId: membership._id, sportDate });
+      }
+
+      const addResult = await transaction.collection("checkinRecords").add({
+        data: {
+          groupId,
+          membershipId: membership._id,
+          userId: currentUser.userId,
+          monthKey: group.monthKey,
+          sportDate,
+          submitDate,
+          submitAt: now,
+          isMakeup: false,
+          makeupForExitedPeriod: false,
+          membershipActivePeriodSeq: membership.activePeriodSeq || 1,
+           status: "valid",
+           contentReviewStatus: "pending",
+           contentRevision,
+           contentReviewExpectedCount: photos.length,
+           contentReviewTraceIds: [],
+           contentReviewRequestedAt: null,
+           contentReviewCompletedAt: null,
+           contentReviewReason: "",
+           metrics,
+          photos,
+          remark,
+          editCount: 0,
+          createdAt: now,
+          updatedAt: now,
+          createdBy: currentUser.userId,
+          updatedBy: currentUser.userId
+        }
+      });
+
+      const resultData = {
+        checkinRecordId: addResult._id,
         groupId,
         membershipId: membership._id,
-        userId: currentUser.userId,
-        monthKey: group.monthKey,
         sportDate,
         submitDate,
-        submitAt: now,
-        isMakeup: false,
-        makeupForExitedPeriod: false,
-        membershipActivePeriodSeq: membership.activePeriodSeq || 1,
-        status: "valid",
-        metrics,
-        photos,
-        remark,
-        editCount: 0,
-        createdAt: now,
-        updatedAt: now,
-        createdBy: currentUser.userId,
-        updatedBy: currentUser.userId
-      }
+         status: "valid",
+         contentReviewStatus: "pending",
+         isMakeup: false
+      };
+
+      await writeAuditLog(transaction, {
+        actionType: "CHECKIN_CREATE",
+        actorUserId: currentUser.userId,
+        actorMembershipId: membership._id,
+        targetType: "checkinRecord",
+        targetId: addResult._id,
+        groupId,
+        requestId,
+        traceId: traceId || "",
+        result: "success",
+        resultData,
+        createdAt: now
+      });
+
+      return resultData;
     });
 
-    const resultData = {
-      checkinRecordId: addResult._id,
-      groupId,
-      membershipId: membership._id,
-      sportDate,
-      submitDate,
-      status: "valid",
-      isMakeup: false
-    };
-
-    await writeAuditLog(db, {
-      actionType: "CHECKIN_CREATE",
-      actorUserId: currentUser.userId,
-      actorMembershipId: membership._id,
-      targetType: "checkinRecord",
-      targetId: addResult._id,
-      groupId,
-      requestId,
-      traceId: traceId || "",
-      result: "success",
-      resultData,
-      createdAt: now
+    resultData.contentReviewStatus = await startContentReview({
+      cloud,
+      db,
+      currentUser,
+      recordId: resultData.checkinRecordId,
+      revision: contentRevision,
+      photos
     });
-
     return resultData;
   },
 
@@ -424,7 +571,7 @@ module.exports = {
     const repeatedAudit = await findActionAudit(db, "MAKEUP_CREATE", currentUser.userId, requestId);
 
     if (repeatedAudit && repeatedAudit.resultData) {
-      return repeatedAudit.resultData;
+      return refreshResultReviewStatus(db, repeatedAudit.resultData);
     }
 
     if (repeatedAudit) {
@@ -435,71 +582,97 @@ module.exports = {
     const { group, membership, targetConfig } = await loadCheckinContext({ db, currentUser, groupId });
     const submitDate = formatDateKey();
     const sportDate = resolveMakeupSportDate(payload.sportDate, submitDate);
-    const dailyMakeupCount = await countDailyMakeups(db, currentUser.userId, submitDate);
-
-    if (dailyMakeupCount >= 3) {
-      throw new AppError(ErrorCodes.MAKEUP_DAILY_LIMIT_REACHED, "", { userId: currentUser.userId, submitDate });
-    }
-
-    const effectiveCount = await countEffectiveRecords(db, groupId, membership._id, sportDate);
-    if (effectiveCount >= 5) {
-      throw new AppError(ErrorCodes.CHECKIN_LIMIT_REACHED, "", { groupId, membershipId: membership._id, sportDate });
-    }
-
     const metrics = normalizeMetrics(payload.metrics, targetConfig.selectedGoalTypes);
     const photos = normalizePhotos(payload.photos);
     const remark = normalizeRemark(payload.remark);
+    await assertTextContentSafe(cloud, currentUser.openid, remark);
     const now = new Date();
     const makeupForExitedPeriod = isSportDateInExitedGap(membership.activePeriods, sportDate, membership.activePeriodSeq || 1);
-    const addResult = await db.collection("checkinRecords").add({
-      data: {
+    const contentRevision = 1;
+    const resultData = await db.runTransaction(async (transaction) => {
+      const transactionAudit = await findActionAudit(transaction, "MAKEUP_CREATE", currentUser.userId, requestId);
+      if (transactionAudit && transactionAudit.resultData) {
+        return transactionAudit.resultData;
+      }
+
+      const dailyMakeupCount = await countDailyMakeups(transaction, currentUser.userId, submitDate);
+      if (dailyMakeupCount >= 3) {
+        throw new AppError(ErrorCodes.MAKEUP_DAILY_LIMIT_REACHED, "", { userId: currentUser.userId, submitDate });
+      }
+
+      const effectiveCount = await countEffectiveRecords(transaction, groupId, membership._id, sportDate);
+      if (effectiveCount >= 5) {
+        throw new AppError(ErrorCodes.CHECKIN_LIMIT_REACHED, "", { groupId, membershipId: membership._id, sportDate });
+      }
+
+      const addResult = await transaction.collection("checkinRecords").add({
+        data: {
+          groupId,
+          membershipId: membership._id,
+          userId: currentUser.userId,
+          monthKey: group.monthKey,
+          sportDate,
+          submitDate,
+          submitAt: now,
+          isMakeup: true,
+          makeupForExitedPeriod,
+          membershipActivePeriodSeq: membership.activePeriodSeq || 1,
+           status: "valid",
+           contentReviewStatus: "pending",
+           contentRevision,
+           contentReviewExpectedCount: photos.length,
+           contentReviewTraceIds: [],
+           contentReviewRequestedAt: null,
+           contentReviewCompletedAt: null,
+           contentReviewReason: "",
+           metrics,
+          photos,
+          remark,
+          editCount: 0,
+          createdAt: now,
+          updatedAt: now,
+          createdBy: currentUser.userId,
+          updatedBy: currentUser.userId
+        }
+      });
+
+      const resultData = {
+        checkinRecordId: addResult._id,
         groupId,
         membershipId: membership._id,
-        userId: currentUser.userId,
-        monthKey: group.monthKey,
         sportDate,
         submitDate,
-        submitAt: now,
-        isMakeup: true,
-        makeupForExitedPeriod,
-        membershipActivePeriodSeq: membership.activePeriodSeq || 1,
-        status: "valid",
-        metrics,
-        photos,
-        remark,
-        editCount: 0,
-        createdAt: now,
-        updatedAt: now,
-        createdBy: currentUser.userId,
-        updatedBy: currentUser.userId
-      }
+         status: "valid",
+         contentReviewStatus: "pending",
+         isMakeup: true,
+        makeupForExitedPeriod
+      };
+
+      await writeAuditLog(transaction, {
+        actionType: "MAKEUP_CREATE",
+        actorUserId: currentUser.userId,
+        actorMembershipId: membership._id,
+        targetType: "checkinRecord",
+        targetId: addResult._id,
+        groupId,
+        requestId,
+        traceId: traceId || "",
+        result: "success",
+        resultData,
+        createdAt: now
+      });
+
+      return resultData;
     });
 
-    const resultData = {
-      checkinRecordId: addResult._id,
-      groupId,
-      membershipId: membership._id,
-      sportDate,
-      submitDate,
-      status: "valid",
-      isMakeup: true,
-      makeupForExitedPeriod
-    };
-
-    await writeAuditLog(db, {
-      actionType: "MAKEUP_CREATE",
-      actorUserId: currentUser.userId,
-      actorMembershipId: membership._id,
-      targetType: "checkinRecord",
-      targetId: addResult._id,
-      groupId,
-      requestId,
-      traceId: traceId || "",
-      result: "success",
-      resultData,
-      createdAt: now
+    resultData.contentReviewStatus = await startContentReview({
+      cloud,
+      db,
+      currentUser,
+      recordId: resultData.checkinRecordId,
+      revision: contentRevision,
+      photos
     });
-
     return resultData;
   },
 
@@ -511,7 +684,7 @@ module.exports = {
     const repeatedAudit = await findActionAudit(db, "CHECKIN_EDIT", currentUser.userId, requestId);
 
     if (repeatedAudit && repeatedAudit.resultData) {
-      return repeatedAudit.resultData;
+      return refreshResultReviewStatus(db, repeatedAudit.resultData);
     }
 
     if (repeatedAudit) {
@@ -545,12 +718,21 @@ module.exports = {
     const metrics = normalizeMetrics(payload.metrics, targetConfig.selectedGoalTypes);
     const photos = normalizePhotos(payload.photos);
     const remark = normalizeRemark(payload.remark);
+    await assertTextContentSafe(cloud, currentUser.openid, remark);
     const now = new Date();
     const nextEditCount = (record.editCount || 0) + 1;
+    const contentRevision = Number(record.contentRevision || 0) + 1;
 
     await db.collection("checkinRecords").doc(checkinRecordId).update({
       data: {
         status: "edited",
+        contentReviewStatus: "pending",
+        contentRevision,
+        contentReviewExpectedCount: photos.length,
+        contentReviewTraceIds: [],
+        contentReviewRequestedAt: null,
+        contentReviewCompletedAt: null,
+        contentReviewReason: "",
         metrics,
         photos,
         remark,
@@ -568,6 +750,7 @@ module.exports = {
       sportDate: record.sportDate,
       submitDate: record.submitDate,
       status: "edited",
+      contentReviewStatus: "pending",
       editCount: nextEditCount,
       isMakeup: Boolean(record.isMakeup)
     };
@@ -586,6 +769,14 @@ module.exports = {
       createdAt: now
     });
 
+    resultData.contentReviewStatus = await startContentReview({
+      cloud,
+      db,
+      currentUser,
+      recordId: checkinRecordId,
+      revision: contentRevision,
+      photos
+    });
     return resultData;
   },
 
@@ -594,7 +785,7 @@ module.exports = {
     const db = cloud.database();
     const currentUser = await requireCurrentUser(db, authContext);
     const groupId = normalizeId(payload.groupId, "groupId");
-    const { group, membership } = await loadCheckinContext({ db, currentUser, groupId });
+    const { group, membership, targetConfig } = await loadCheckinContext({ db, currentUser, groupId });
     const records = await findMany(db.collection("checkinRecords"), {
       groupId,
       membershipId: membership._id,
@@ -603,19 +794,77 @@ module.exports = {
 
     return {
       records: records
-        .filter(isEffectiveRecord)
+        .filter((record) => isRecordContextEligible(record, membership, targetConfig, group))
         .sort((left, right) => String(right.sportDate || "").localeCompare(String(left.sportDate || "")))
         .map((record) => ({
           checkinRecordId: record._id,
           sportDate: record.sportDate,
           submitDate: record.submitDate,
           isMakeup: Boolean(record.isMakeup),
-          status: record.status,
+           status: record.status,
+           contentReviewStatus: getContentReviewStatus(record),
           metrics: record.metrics || {},
           photos: record.photos || [],
           remark: record.remark || "",
           editCount: record.editCount || 0
         }))
+    };
+  },
+
+  async getCheckinRecordDetail({ payload = {}, cloud, context }) {
+    const authContext = createAuthContext({ cloud, context });
+    const db = cloud.database();
+    const currentUser = await requireCurrentUser(db, authContext);
+    const checkinRecordId = normalizeId(payload.checkinRecordId, "checkinRecordId");
+    const record = await findCheckinRecord(db, checkinRecordId);
+
+    if (!record || !isEffectiveRecord(record)) {
+      throw new AppError(ErrorCodes.AUTH_FORBIDDEN, "", { checkinRecordId });
+    }
+
+    const group = await findGroupById(db, record.groupId);
+    assertActiveGroup(group);
+
+    const currentMembership = await findMembership(db, record.groupId, currentUser.userId);
+    assertActiveMembership(currentMembership);
+
+    const recordMembership = await findMembershipById(db, record.membershipId);
+    if (!recordMembership || recordMembership.groupId !== record.groupId || recordMembership.status !== "active") {
+      throw new AppError(ErrorCodes.MEMBER_NOT_ACTIVE, "", { membershipId: record.membershipId });
+    }
+
+    const targetConfig = await findTargetConfig(db, record.groupId, record.membershipId, group.monthKey);
+    const isOwner = record.userId === currentUser.userId;
+    const contextEligible = isRecordContextEligible(record, recordMembership, targetConfig, group);
+    if (!contextEligible || (!isOwner && !isEligibleRecord(record, recordMembership, targetConfig, group))) {
+      throw new AppError(ErrorCodes.AUTH_FORBIDDEN, "", { checkinRecordId });
+    }
+
+    const photos = await resolveRecordPhotos(cloud, record.photos);
+    return {
+      group: {
+        groupId: group._id,
+        name: group.name,
+        monthKey: group.monthKey
+      },
+      member: {
+        membershipId: recordMembership._id,
+        nickname: recordMembership.nickname,
+        role: recordMembership.role
+      },
+      record: {
+        checkinRecordId: record._id,
+        sportDate: record.sportDate,
+        submitDate: record.submitDate,
+        isMakeup: Boolean(record.isMakeup),
+         status: record.status,
+         contentReviewStatus: getContentReviewStatus(record),
+        metrics: record.metrics || {},
+        photos,
+        remark: record.remark || "",
+        editCount: Number(record.editCount || 0),
+         canEdit: isOwner && record.submitDate === formatDateKey()
+      }
     };
   },
 

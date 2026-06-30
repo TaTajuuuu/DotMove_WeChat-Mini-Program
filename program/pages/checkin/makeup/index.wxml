@@ -24,7 +24,7 @@
   <view class="card">
     <view class="section-head">
       <text class="section-title">补卡日期</text>
-      <text class="section-meta">二选一</text>
+      <text class="section-meta">今日还可补 {{remainingDailyMakeupCount}} 次</text>
     </view>
     <view class="date-grid">
       <view class="date-card {{selectedDate === yesterdayKey ? 'selected' : ''}}" bindtap="handleDateSelect" data-date="{{yesterdayKey}}">
@@ -35,6 +35,9 @@
         <text class="date-value">{{dayBeforeLabel}}</text>
         <text class="date-name">前天</text>
       </view>
+    </view>
+    <view class="notice limit-notice">
+      <text>所选日期还可提交 {{remainingSportDateCount}} 条有效记录；打卡和补卡合计上限为 5 条。</text>
     </view>
   </view>
 
@@ -71,7 +74,7 @@
   <view class="panel">
     <view class="section-head">
       <text class="section-title">照片和备注</text>
-      <text class="section-meta">{{photos.length}}/3</text>
+      <text class="section-meta privacy-link" bindtap="handleOpenPrivacyContract">隐私指引 · {{photos.length}}/3</text>
     </view>
     <view class="photo-grid">
       <block wx:for="{{photos}}" wx:key="*this">
@@ -96,6 +99,29 @@
   </view>
 
   <!-- 提交按钮 -->
-  <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">提交补卡</button>
+  <button
+    class="primary-btn"
+    loading="{{submitting}}"
+    disabled="{{submitting || remainingDailyMakeupCount <= 0 || remainingSportDateCount <= 0}}"
+    bindtap="handleSubmit"
+  >提交补卡</button>
+  <view wx:if="{{showPrivacyDialog}}" class="privacy-mask">
+    <view class="privacy-dialog">
+      <text class="privacy-title">运动照片隐私说明</text>
+      <text class="privacy-copy">你选择的运动照片将上传至微信云存储。内容安全审核通过后，同组有效成员可以在打卡详情中查看，用于相互监督。</text>
+      <text class="privacy-contract-link" bindtap="handleOpenPrivacyContract">查看《用户隐私保护指引》</text>
+      <view class="privacy-actions">
+        <button class="privacy-cancel-btn" bindtap="handleCancelPrivacyAuthorization">暂不使用</button>
+        <button
+          id="agree-btn"
+          class="privacy-agree-btn"
+          open-type="agreePrivacyAuthorization"
+          bindtap="handleAgreePrivacyAuthorization"
+          bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+        >同意并继续</button>
+      </view>
+    </view>
+  </view>
+
   <custom-tab-bar />
 </view>
