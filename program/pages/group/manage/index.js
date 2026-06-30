@@ -218,9 +218,7 @@ Page({
       });
       this.setData({ submitting: false, actionType: "" });
       wx.showToast({ title: "已退出小组", icon: "success" });
-      setTimeout(() => {
-        wx.redirectTo({ url: routes.home });
-      }, 1500);
+      wx.switchTab({ url: routes.home });
     } catch (error) {
       this.setData({
         submitting: false,
@@ -245,9 +243,7 @@ Page({
       });
       this.setData({ submitting: false, actionType: "" });
       wx.showToast({ title: "已解散小组", icon: "success" });
-      setTimeout(() => {
-        wx.redirectTo({ url: routes.home });
-      }, 1500);
+      wx.switchTab({ url: routes.home });
     } catch (error) {
       this.setData({
         submitting: false,
