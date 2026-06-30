@@ -114,5 +114,24 @@
       </view>
     </view>
   </view>
+
+  <view wx:if="{{showClipboardPrivacyDialog}}" class="privacy-mask">
+    <view class="privacy-dialog">
+      <text class="privacy-title">隐私保护提示</text>
+      <text class="privacy-copy">复制邀请码需要使用剪切板。请阅读并同意《用户隐私保护指引》后继续。</text>
+      <text class="privacy-contract-link" bindtap="handleOpenPrivacyContract">查看《用户隐私保护指引》</text>
+      <view class="privacy-actions">
+        <button class="privacy-cancel-btn" bindtap="handleCancelClipboardPrivacy">暂不使用</button>
+        <button
+          id="agree-btn"
+          class="privacy-agree-btn"
+          open-type="agreePrivacyAuthorization"
+          bindtap="handleAgreeClipboardPrivacy"
+          bindagreeprivacyauthorization="handleAgreeClipboardPrivacy"
+        >同意并复制</button>
+      </view>
+    </view>
+  </view>
+
   <custom-tab-bar />
 </view>

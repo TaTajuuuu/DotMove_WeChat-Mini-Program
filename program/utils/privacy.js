@@ -129,6 +129,27 @@ function openPrivacyContract() {
   });
 }
 
+function copyText(text) {
+  const value = typeof text === "string" ? text.trim() : "";
+  if (!value) {
+    return Promise.reject(new Error("复制内容为空。"));
+  }
+
+  return new Promise((resolve, reject) => {
+    wx.setClipboardData({
+      data: value,
+      success() {
+        setPrivacyPromptHandler(null);
+        resolve();
+      },
+      fail(error) {
+        setPrivacyPromptHandler(null);
+        reject(error || new Error("setClipboardData failed"));
+      }
+    });
+  });
+}
+
 module.exports = {
   needsPrivacyAuthorization,
   markPrivacyAuthorized,
@@ -136,5 +157,6 @@ module.exports = {
   setPrivacyPromptHandler,
   resolvePrivacyAuthorization,
   chooseImageMedia,
-  openPrivacyContract
+  openPrivacyContract,
+  copyText
 };

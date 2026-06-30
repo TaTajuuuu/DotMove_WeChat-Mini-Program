@@ -7,6 +7,7 @@ const {
 } = require("../common/date");
 const { AppError, ErrorCodes } = require("../common/errors");
 const { calculateGroupStats } = require("../common/stats");
+const { ensureGroupLifecycle } = require("../common/groupLifecycle");
 
 const MAX_MEMBERS = 50;
 const GROUP_NAME_RE = /^[\u4e00-\u9fa5A-Za-z0-9 _\-\u00b7()（）]{1,20}$/;
@@ -609,6 +610,7 @@ module.exports = {
     const group = await findGroupByInviteCode(db, inviteCode);
 
     assertGroupJoinable(group, { checkCapacity: false });
+    await ensureGroupLifecycle(db, group);
 
     const membership = await findMembership(db, group._id, currentUser.userId);
     if (membership && membership.status === "removed") {
@@ -649,6 +651,7 @@ module.exports = {
     assertGroupJoinable(group, { checkCapacity: false });
 
     const now = new Date();
+    await ensureGroupLifecycle(db, group, now);
     const existingMembership = await findMembership(db, group._id, currentUser.userId);
 
     if (existingMembership && existingMembership.status === "removed") {
@@ -784,6 +787,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertGroupReadable(group);
+    await ensureGroupLifecycle(db, group);
 
     const currentMembership = await findMembership(db, groupId, currentUser.userId);
     assertActiveMembership(currentMembership);
@@ -856,6 +860,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertGroupReadable(group);
+    await ensureGroupLifecycle(db, group);
 
     const currentMembership = await findMembership(db, groupId, currentUser.userId);
     assertCreatorMembership(currentMembership);

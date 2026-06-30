@@ -1,5 +1,6 @@
 const groupService = require("../../../services/group");
 const { routes } = require("../../../config/routes");
+const privacyUtils = require("../../../utils/privacy");
 
 // 计算当前月和下月的日期标签
 function getMonthInfo() {
@@ -33,6 +34,7 @@ Page({
     submitting: false,
     errorMessage: "",
     createdGroup: null,
+    showClipboardPrivacyDialog: false,
     // 动态日期显示
     currentMonthLabel: monthInfo.currentMonthLabel,
     currentMonthRange: monthInfo.currentMonthRange,
@@ -121,7 +123,7 @@ Page({
   },
 
   // 复制邀请码
-  handleCopyCode() {
+  async handleCopyCode() {
     const code = String(
       (this.data.createdGroup && this.data.createdGroup.inviteCode) || ""
     ).trim();
@@ -131,19 +133,34 @@ Page({
       return;
     }
 
-    wx.setClipboardData({
-      data: code,
-      success: () => {
-        wx.showToast({ title: "邀请码已复制", icon: "success" });
-      },
-      fail: (error) => {
-        console.error("[group/create] copy invite code failed", {
-          inviteCode: code,
-          errMsg: error && error.errMsg ? error.errMsg : ""
-        });
-        wx.showToast({ title: "复制失败，请稍后重试", icon: "none" });
-      }
-    });
+    try {
+      privacyUtils.setPrivacyPromptHandler(() => {
+        this.setData({ showClipboardPrivacyDialog: true });
+      });
+      await privacyUtils.copyText(code);
+      wx.showToast({ title: "邀请码已复制", icon: "success" });
+    } catch (error) {
+      console.error("[group/create] copy invite code failed", {
+        inviteCode: code,
+        errMsg: error && error.errMsg ? error.errMsg : ""
+      });
+      wx.showToast({ title: "复制失败，请稍后重试", icon: "none" });
+    }
+  },
+
+  handleAgreeClipboardPrivacy() {
+    privacyUtils.markPrivacyAuthorized();
+    privacyUtils.resolvePrivacyAuthorization(true);
+    this.setData({ showClipboardPrivacyDialog: false });
+  },
+
+  handleCancelClipboardPrivacy() {
+    privacyUtils.resolvePrivacyAuthorization(false);
+    this.setData({ showClipboardPrivacyDialog: false });
+  },
+
+  handleOpenPrivacyContract() {
+    privacyUtils.openPrivacyContract();
   },
 
   onShareAppMessage() {

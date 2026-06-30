@@ -1,6 +1,7 @@
 const { createAuthContext, requireCurrentUser } = require("../common/auth");
 const { AppError, ErrorCodes } = require("../common/errors");
 const { calculateMemberStats, isEligibleRecord } = require("../common/stats");
+const { ensureGroupLifecycle } = require("../common/groupLifecycle");
 
 const SUPPORTED_GOAL_TYPES = [
   "calorieTotal",
@@ -278,6 +279,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertEditableGroup(group);
+    await ensureGroupLifecycle(db, group);
 
     const membership = await findMembership(db, groupId, currentUser.userId);
     assertActiveMembership(membership);
@@ -305,6 +307,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertEditableGroup(group);
+    await ensureGroupLifecycle(db, group);
 
     const membership = await findMembership(db, groupId, currentUser.userId);
     assertActiveMembership(membership);
@@ -409,6 +412,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertEditableGroup(group);
+    await ensureGroupLifecycle(db, group);
 
     const membership = await findMembership(db, groupId, currentUser.userId);
     assertActiveMembership(membership);
@@ -450,6 +454,7 @@ module.exports = {
     const group = await findGroupById(db, groupId);
 
     assertEditableGroup(group);
+    await ensureGroupLifecycle(db, group);
 
     const currentMembership = await findMembership(db, groupId, currentUser.userId);
     assertActiveMembership(currentMembership);

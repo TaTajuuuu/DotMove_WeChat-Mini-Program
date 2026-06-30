@@ -1,6 +1,7 @@
 const groupService = require("../../../services/group");
 const { routes } = require("../../../config/routes");
 const { PageState } = require("../../../config/page-states");
+const privacyUtils = require("../../../utils/privacy");
 
 Page({
   data: {
@@ -10,7 +11,8 @@ Page({
     group: null,
     members: [],
     statsSummary: null,
-    myTargetStatus: "" // 'unset' | 'set' | ''
+    myTargetStatus: "", // 'unset' | 'set' | ''
+    showClipboardPrivacyDialog: false
   },
 
   onLoad(options = {}) {
@@ -89,13 +91,42 @@ Page({
     wx.navigateTo({ url: `${routes.groupManage}?groupId=${this.data.groupId}` });
   },
 
-  handleCopyInviteCode() {
-    const inviteCode = (this.data.group && this.data.group.inviteCode) || "";
-    if (!inviteCode) return;
-    wx.setClipboardData({
-      data: inviteCode,
-      success: () => wx.showToast({ title: "邀请码已复制", icon: "success" })
-    });
+  async handleCopyInviteCode() {
+    const inviteCode = String(
+      (this.data.group && this.data.group.inviteCode) || ""
+    ).trim();
+    if (!inviteCode) {
+      wx.showToast({ title: "邀请码为空，请刷新后重试", icon: "none" });
+      return;
+    }
+    try {
+      privacyUtils.setPrivacyPromptHandler(() => {
+        this.setData({ showClipboardPrivacyDialog: true });
+      });
+      await privacyUtils.copyText(inviteCode);
+      wx.showToast({ title: "邀请码已复制", icon: "success" });
+    } catch (error) {
+      console.error("[group/detail] copy invite code failed", {
+        inviteCode,
+        errMsg: error && error.errMsg ? error.errMsg : ""
+      });
+      wx.showToast({ title: "复制失败，请稍后重试", icon: "none" });
+    }
+  },
+
+  handleAgreeClipboardPrivacy() {
+    privacyUtils.markPrivacyAuthorized();
+    privacyUtils.resolvePrivacyAuthorization(true);
+    this.setData({ showClipboardPrivacyDialog: false });
+  },
+
+  handleCancelClipboardPrivacy() {
+    privacyUtils.resolvePrivacyAuthorization(false);
+    this.setData({ showClipboardPrivacyDialog: false });
+  },
+
+  handleOpenPrivacyContract() {
+    privacyUtils.openPrivacyContract();
   },
 
   handleOpenMember(event) {
