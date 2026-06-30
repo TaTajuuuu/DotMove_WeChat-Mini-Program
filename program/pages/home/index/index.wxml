@@ -25,9 +25,18 @@
 
   <!-- 加入小组弹窗 -->
   <view wx:if="{{showJoinModal}}" class="modal-overlay" bindtap="handleHideJoinModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="handleModalContentTap">
       <text class="modal-title">加入小组</text>
-      <input class="modal-input" placeholder="输入邀请码" value="{{inviteCode}}" bindinput="handleInviteInput" />
+      <input
+        class="modal-input"
+        maxlength="12"
+        placeholder="输入邀请码"
+        value="{{inviteCode}}"
+        bindinput="handleInviteInput"
+        confirm-type="done"
+        bindconfirm="handleJoinGroup"
+      />
+      <text wx:if="{{joinErrorMessage}}" class="modal-error">{{joinErrorMessage}}</text>
       <view class="modal-actions">
         <button class="modal-btn cancel" bindtap="handleHideJoinModal">取消</button>
         <button class="modal-btn confirm" bindtap="handleJoinGroup">加入</button>

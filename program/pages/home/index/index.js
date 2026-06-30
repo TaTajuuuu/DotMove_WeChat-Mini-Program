@@ -10,6 +10,7 @@ Page({
     upcomingGroups: [],
     inviteCode: "",
     showJoinModal: false,
+    joinErrorMessage: "",
 
     // Hero 数据
     monthName: "",
@@ -65,67 +66,6 @@ Page({
       pageState: PageState.LOADING,
       errorMessage: ""
     });
-
-    // ========================================
-    // 🔧 临时模拟数据（用于界面调试）
-    // 恢复真实数据：把下面这行改成 if (false)
-    // ========================================
-    if (false) { // 已恢复真实数据调用
-      // 模拟数据：一个 active 小组，5 个成员，不同打卡进度
-      const mockActiveGroups = [
-        {
-          groupId: 'mock_group_001',
-          name: '六月运动打卡',
-          status: 'active',
-          dateRange: '06.01 - 06.30',
-          activeMemberCount: 5,
-          maxMembers: 10,
-          hasTarget: true,
-          progress: 68, // 进度条 68%
-          avatarList: [
-            { type: '', text: '我' },
-            { type: 'alt', text: '明' },
-            { type: 'mute', text: '+3' }
-          ],
-          targetSummary: { status: 'locked', selectedGoalCount: 3 }
-        }
-      ];
-
-      // 模拟数据：一个 upcoming 小组
-      const mockUpcomingGroups = [
-        {
-          groupId: 'mock_group_002',
-          name: '七月运动挑战',
-          status: 'upcoming',
-          dateRange: '07.01 - 07.31',
-          activeMemberCount: 3,
-          maxMembers: 8,
-          hasTarget: false,
-          progress: undefined,
-          avatarList: [
-            { type: '', text: '我' },
-            { type: 'alt', text: '王' },
-            { type: 'mute', text: '+1' }
-          ],
-          targetSummary: { status: 'unset' }
-        }
-      ];
-
-      // 计算打卡可用次数（当月已打卡天数）
-      const mockCheckinCount = 12;
-
-      this.setData({
-        pageState: PageState.READY,
-        activeGroups: mockActiveGroups,
-        upcomingGroups: mockUpcomingGroups,
-        checkinAvailableCount: mockCheckinCount
-      });
-
-      return; // 不执行下面的真实调用
-    }
-    // ========================================
-    // 🔧 临时模拟数据结束
-    // ========================================
 
     try {
       const result = await groupService.getHomeEntry();
@@ -213,7 +153,8 @@ Page({
 
   handleInviteInput(event) {
     this.setData({
-      inviteCode: (event.detail.value || "").trim()
+      inviteCode: (event.detail.value || "").replace(/\s+/g, "").toUpperCase(),
+      joinErrorMessage: ""
     });
   },
 
@@ -222,10 +163,20 @@ Page({
   },
 
   handleJoinGroup() {
-    const inviteCode = this.data.inviteCode;
-    const query = inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : "";
-    wx.navigateTo({ url: `${routes.groupJoin}${query}` });
-    this.setData({ showJoinModal: false });
+    const inviteCode = String(this.data.inviteCode || "").trim().toUpperCase();
+    if (!/^[A-Z2-9]{6,12}$/.test(inviteCode)) {
+      this.setData({ joinErrorMessage: "请输入 6 至 12 位有效邀请码。" });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `${routes.groupJoin}?inviteCode=${encodeURIComponent(inviteCode)}`,
+      success: () => this.setData({ showJoinModal: false, joinErrorMessage: "" }),
+      fail: (error) => {
+        console.error("[Home] open join page failed", error);
+        this.setData({ joinErrorMessage: "加入页面打开失败，请重试。" });
+      }
+    });
   },
 
   handleOpenGroup(event) {
@@ -247,10 +198,14 @@ Page({
   },
 
   handleShowJoinModal() {
-    this.setData({ showJoinModal: true });
+    this.setData({ showJoinModal: true, joinErrorMessage: "" });
   },
 
   handleHideJoinModal() {
-    this.setData({ showJoinModal: false });
+    this.setData({ showJoinModal: false, joinErrorMessage: "" });
+  },
+
+  handleModalContentTap() {
+    // 阻止弹窗内部点击冒泡到遮罩层。
   }
 });

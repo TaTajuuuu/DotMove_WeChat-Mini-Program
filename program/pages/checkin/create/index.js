@@ -1,5 +1,5 @@
 var routes = require("../../../config/routes").routes;
-var checkinService, groupService, authService, photoUtils;
+var checkinService, groupService, authService, photoUtils, privacyUtils;
 
 Page({
   data: {
@@ -16,8 +16,11 @@ Page({
     ringsClosed: false,
     photos: [],
     remark: "",
+    remainingTodayCount: 5,
     errorMessage: "",
-    submitting: false
+    submitting: false,
+    showPrivacyDialog: false,
+    pendingPhotoCount: 1
   },
 
   onLoad: function(options) {
@@ -49,6 +52,7 @@ Page({
         ringsClosed: false,
         photos: [],
         remark: "",
+        remainingTodayCount: Number.isFinite(ctx.remainingTodayCount) ? ctx.remainingTodayCount : 5,
         errorMessage: "",
         loading: false
       });
@@ -142,6 +146,7 @@ Page({
       ringsClosed: false,
       photos: [],
       remark: "",
+      remainingTodayCount: 5,
       errorMessage: ""
     });
   },
@@ -184,17 +189,77 @@ Page({
     var self = this;
     var remain = 3 - self.data.photos.length;
     if (remain <= 0) return;
-    wx.chooseMedia({
-      count: remain,
-      mediaType: ["image"],
-      sizeType: ["compressed"],
-      success: function(res) {
-        var newFiles = (res.tempFiles || []).map(function(f) {
-          return { tempFilePath: f.tempFilePath, size: f.size };
-        });
+    if (!privacyUtils) privacyUtils = require("../../../utils/privacy");
+    privacyUtils.setPrivacyPromptHandler(function() {
+      self.setData({
+        showPrivacyDialog: true,
+        pendingPhotoCount: remain,
+        errorMessage: ""
+      });
+    });
+    self.openPhotoPicker(remain);
+  },
+
+  openPhotoPicker: function(count) {
+    var self = this;
+    privacyUtils.chooseImageMedia({ count: count }).then(function(res) {
+      var newFiles = (res.tempFiles || []).map(function(f) {
+        return { tempFilePath: f.tempFilePath, size: f.size };
+      });
+      if (newFiles.length > 0) {
         self.setData({ photos: self.data.photos.concat(newFiles), errorMessage: "" });
       }
+    }).catch(function(error) {
+      if (error && error.code === "PRIVACY_AUTH_REQUIRED") {
+        if (self._privacyDeclined) {
+          self._privacyDeclined = false;
+          self.setData({
+            showPrivacyDialog: false,
+            errorMessage: "需要同意隐私保护指引后才能选择运动照片。"
+          });
+          return;
+        }
+        privacyUtils.clearPrivacyAuthorization();
+        self.setData({
+          showPrivacyDialog: true,
+          pendingPhotoCount: count,
+          errorMessage: ""
+        });
+        return;
+      }
+      var errorMessage = error.message || "需要同意隐私保护指引后才能选择照片。";
+      self.setData({ errorMessage: errorMessage });
+      wx.showToast({ title: errorMessage, icon: "none" });
     });
+  },
+
+  handleAgreePrivacyAuthorization: function() {
+    if (this._privacyAgreeInProgress) return;
+    this._privacyAgreeInProgress = true;
+    var count = this.data.pendingPhotoCount || 1;
+    privacyUtils.markPrivacyAuthorized();
+    this.setData({ showPrivacyDialog: false });
+    if (!privacyUtils.resolvePrivacyAuthorization(true)) {
+      this.openPhotoPicker(count);
+    }
+    var self = this;
+    setTimeout(function() {
+      self._privacyAgreeInProgress = false;
+    }, 500);
+  },
+
+  handleCancelPrivacyAuthorization: function() {
+    this._privacyDeclined = true;
+    privacyUtils.resolvePrivacyAuthorization(false);
+    this.setData({
+      showPrivacyDialog: false,
+      errorMessage: "需要同意隐私保护指引后才能选择运动照片。"
+    });
+  },
+
+  handleOpenPrivacyContract: function() {
+    if (!privacyUtils) privacyUtils = require("../../../utils/privacy");
+    privacyUtils.openPrivacyContract();
   },
 
   handlePreviewPhoto: function(e) {
@@ -205,7 +270,13 @@ Page({
 
   handleGoMakeup: function() {
     if (!this.data.groupId) return;
-    wx.navigateTo({ url: routes.checkinMakeup + "?groupId=" + this.data.groupId });
+    wx.navigateTo({
+      url: routes.makeup + "?groupId=" + this.data.groupId,
+      fail: function(error) {
+        console.error("[checkin] navigate to makeup failed", error);
+        wx.showToast({ title: "补卡页面打开失败", icon: "none" });
+      }
+    });
   },
 
   handleSubmit: function() {
@@ -291,8 +362,12 @@ Page({
         remark: self.data.remark || "",
         requestId: Date.now() + "-" + Math.random().toString(36).slice(2, 10)
       }, { loadingText: "提交中" });
-    }).then(function() {
-      wx.showToast({ title: "打卡成功", icon: "success" });
+    }).then(function(result) {
+      var reviewStatus = result && result.data && result.data.contentReviewStatus;
+      wx.showToast({
+        title: reviewStatus === "failed" ? "已保存，审核提交失败" : "已提交审核",
+        icon: "none"
+      });
       setTimeout(function() {
         wx.redirectTo({ url: routes.checkinRecords + "?groupId=" + self.data.groupId });
       }, 1500);

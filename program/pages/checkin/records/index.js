@@ -1,5 +1,6 @@
 const checkinService = require("../../../services/checkin");
 const groupService = require("../../../services/group");
+const { routes } = require("../../../config/routes");
 
 Page({
   data: {
@@ -87,7 +88,14 @@ Page({
         duration: (item.metrics && item.metrics.durationMinutes) || 0,
         distance: (item.metrics && (item.metrics.runningDistanceKm || item.metrics.cyclingDistanceKm)) || 0,
         ringsClosed: !!(item.metrics && item.metrics.ringClosed),
-        photoCount: (item.photos && item.photos.length) || 0
+        photoCount: (item.photos && item.photos.length) || 0,
+        reviewStatusText: item.contentReviewStatus === "pending"
+          ? "审核中"
+          : item.contentReviewStatus === "rejected"
+            ? "审核未通过"
+            : item.contentReviewStatus === "failed"
+              ? "审核提交失败"
+              : ""
       }));
 
       let stats = statsResult.data?.stats;
@@ -98,7 +106,9 @@ Page({
         displayStats = this.buildDisplayStats(stats);
       } else {
         // 云函数未部署，使用本地备用计算
-        displayStats = this.calcStatsFallback(rawRecords);
+        displayStats = this.calcStatsFallback(rawRecords.filter((record) => (
+          !record.contentReviewStatus || record.contentReviewStatus === "passed"
+        )));
       }
 
       this.setData({
@@ -118,8 +128,8 @@ Page({
   /** 将云函数 stats 转为 WXML 易用的扁平结构 */
   buildDisplayStats(stats) {
     var GOAL_LABELS = {
-      calorieTotal: "月总热量",
-      durationTotal: "月总时长",
+      calorieTotal: "月总最低热量",
+      durationTotal: "运动时长",
       exerciseDays: "运动天数",
       exerciseTimes: "运动次数",
       runningDistance: "跑步距离",
@@ -227,5 +237,13 @@ Page({
     } else {
       this.setData({ filteredRecords: this.data.records });
     }
+  },
+
+  handleOpenRecord(event) {
+    const checkinRecordId = event.currentTarget.dataset.id;
+    if (!checkinRecordId) return;
+    wx.navigateTo({
+      url: `${routes.checkinRecordDetail}?checkinRecordId=${checkinRecordId}`
+    });
   }
 });

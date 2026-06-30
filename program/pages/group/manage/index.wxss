@@ -181,12 +181,16 @@
 }
 
 .section-title {
+  min-width: 0;
   font-size: 34rpx;
   font-weight: 800;
   color: #20251f;
 }
 
 .section-meta {
+  flex: 0 1 auto;
+  min-width: 0;
+  text-align: right;
   font-size: 24rpx;
   color: #8a9384;
 }
@@ -242,7 +246,7 @@
 /* ========== 邀请方式 ========== */
 .invite-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) 160rpx;
   gap: 20rpx;
   align-items: center;
   margin-top: 20rpx;
@@ -253,13 +257,17 @@
 }
 
 .invite-code {
+  min-width: 0;
   font-size: 44rpx;
   font-weight: 900;
   color: #23613e;
   letter-spacing: 4rpx;
+  overflow-wrap: anywhere;
 }
 
 .ghost-btn {
+  width: 100%;
+  min-width: 0;
   min-height: 68rpx;
   padding: 0 32rpx;
   border: 1rpx solid rgba(47, 125, 79, 0.22);
@@ -284,7 +292,7 @@
 
 .member-item {
   display: grid;
-  grid-template-columns: 72rpx 1fr auto;
+  grid-template-columns: 72rpx minmax(0, 1fr) auto;
   gap: 20rpx;
   align-items: center;
   padding-bottom: 20rpx;
@@ -418,12 +426,14 @@
 
 .danger-zone {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20rpx;
   margin-top: 4rpx;
 }
 
 .ghost-btn-wide {
+  width: 100%;
+  min-width: 0;
   min-height: 88rpx;
   border: 1rpx solid rgba(47, 125, 79, 0.22);
   border-radius: 16rpx;
@@ -440,6 +450,8 @@
 }
 
 .danger-btn-wide {
+  width: 100%;
+  min-width: 0;
   min-height: 88rpx;
   border: 1rpx solid rgba(186, 81, 72, 0.28);
   border-radius: 16rpx;
@@ -487,6 +499,7 @@
 }
 
 .notice-text {
+  min-width: 0;
   font-size: 24rpx;
   line-height: 1.45;
   color: #6c4a06;

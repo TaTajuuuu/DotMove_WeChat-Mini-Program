@@ -580,6 +580,13 @@ goals 结构：
 | makeupForExitedPeriod | boolean | 是 | 是否为 exited 成员重新加入后补交退出期间昨日或前天 |
 | membershipActivePeriodSeq | number | 是 | 提交时所属 active 参与区间序号 |
 | status | string | 是 | valid / edited / invalidated |
+| contentReviewStatus | string | 是 | pending / passed / rejected / failed；历史缺失值按 passed |
+| contentRevision | number | 是 | 每次提交或修改递增，用于忽略旧版本异步回调 |
+| contentReviewExpectedCount | number | 是 | 当前版本预期收到的图片审核任务数 |
+| contentReviewTraceIds | array | 是 | 当前版本图片审核任务 traceId |
+| contentReviewRequestedAt | Date/null | 否 | 当前版本发起图片审核时间 |
+| contentReviewCompletedAt | Date/null | 否 | 当前版本完成或失败时间 |
+| contentReviewReason | string | 否 | 审核未通过或提交失败原因 |
 | metrics | object | 是 | 运动数值 |
 | photos | array | 是 | 运动照片信息，1 至 3 张 |
 | remark | string | 否 | 备注运动状态，最多 100 字 |
@@ -618,6 +625,7 @@ photos 元素结构：
 | groupId + monthKey + status | 否 | 当前统计和归档统计 |
 | membershipId + monthKey + status | 否 | 我的记录、我的目标详情和成员目标详情 |
 | groupId + sportDate + status | 否 | 小组详情、成员当天状态 |
+| contentReviewStatus + updatedAt | 否 | 审核积压与异常排查 |
 
 约束：
 
@@ -631,8 +639,38 @@ photos 元素结构：
 - 成员退出、被移除或统计范围变化，不应将 valid / edited 记录改为 invalidated。
 - invalidated 仅用于记录本身被判定作废的场景，且仍物理保留。
 - membershipActivePeriodSeq 用于判断记录是否属于当前 active 参与区间；makeupForExitedPeriod 用于标记退出重入后的允许补卡例外。
+- 物理次数限制只看 `valid / edited`，不因内容审核状态释放次数。
+- 统计和成员互看必须同时要求 `contentReviewStatus === passed`；历史缺失字段按 passed。
+- 提交者可查看本人 pending / rejected / failed 记录，并仅在提交当天修改后重新送审。
 
-### 3.9 archiveSnapshots 集合
+### 3.9 contentReviewTasks 集合
+
+用途：保存图片异步内容安全审核任务，使微信回调可通过 traceId 定位记录及内容版本。
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| traceId | string | 是 | `mediaCheckAsync` 返回的唯一任务号 |
+| recordId | string | 是 | checkinRecordId |
+| revision | number | 是 | 对应 checkinRecords.contentRevision |
+| fileId | string | 是 | 被审核的云存储文件 |
+| status | string | 是 | pending / passed / rejected |
+| suggest | string | 否 | 微信内容安全回调结论 |
+| callbackPayload | object | 否 | 必要的回调排障信息 |
+| createdAt / updatedAt | Date | 是 | 通用时间字段 |
+| completedAt | Date | 否 | 回调处理完成时间 |
+
+索引：`traceId` 唯一；`recordId + revision + status` 非唯一。
+
+审核流程：
+
+1. 云函数先使用 `msgSecCheck` 同步检查备注。
+2. 写入 `valid / edited` 记录并将 `contentReviewStatus` 设为 pending。
+3. 对每张图片调用 `mediaCheckAsync`，把 traceId 写入 `contentReviewTasks`。
+4. 独立 HTTP 云函数验证微信明文回调签名，再以内部密钥调用 `contentReview.handleMediaCallback`。
+5. 全部任务通过后记录转为 passed；任一任务不通过时记录转为 rejected 并删除该记录照片。
+6. 回调携带的 revision 与记录当前版本不一致时只标记任务，不修改当前记录。
+
+### 3.10 archiveSnapshots 集合
 
 用途：保存小组归档时冻结的总览信息、可见成员范围和小组整体完成率。
 
@@ -672,7 +710,7 @@ photos 元素结构：
 - dissolved 小组不进入普通回顾页展示。
 - 后台审计或争议追溯读取原始数据时，不得反写 archiveSnapshots。
 
-### 3.10 archiveMemberSnapshots 集合
+### 3.11 archiveMemberSnapshots 集合
 
 用途：保存归档时每个成员的冻结目标完成详情，用于归档复盘详情页和归档成员目标详情页。
 
@@ -730,7 +768,7 @@ progressSnapshot 结构：
 - 退出、被移除或解散后的用户不因后续状态变化影响已生成归档成员快照的普通只读结果；但查看权限仍以 archiveSnapshots.visibleMembershipIds / visibleUserIds 为准。
 - 归档成员目标详情页读取该集合，不读取实时 targetConfigs 和 checkinRecords 重算。
 
-### 3.11 auditLogs 集合
+### 3.12 auditLogs 集合
 
 用途：保存敏感操作、状态变化、失败原因和问题追溯信息。
 
@@ -790,7 +828,7 @@ actionType 枚举：
 - 表单提交失败、权限拒绝和关键状态流转失败应记录必要日志，但不得记录不必要的敏感内容。
 - auditLogs 不面向普通页面展示。
 
-### 3.12 集合关系
+### 3.13 集合关系
 
 ```text
 users 1 ── n memberships
@@ -812,7 +850,7 @@ users / groups / memberships / targetConfigs / checkinRecords ── n auditLogs
 - archiveMemberSnapshots 来自归档时 active memberships、targetConfigs 和 checkinRecords 的冻结计算结果。
 - auditLogs 通过 targetType + targetId 指向发生变化的对象。
 
-### 3.13 页面与数据读取映射
+### 3.14 页面与数据读取映射
 
 | 页面 / 原型 | 主要读取集合 | 说明 |
 |---|---|---|
@@ -833,7 +871,7 @@ users / groups / memberships / targetConfigs / checkinRecords ── n auditLogs
 | 归档复盘详情页 | archiveSnapshots、archiveMemberSnapshots | 展示冻结完成概览和成员完成明细 |
 | 归档成员目标详情页 | archiveMemberSnapshots | 展示归档时冻结的成员目标完成详情 |
 
-### 3.14 核心查询与索引映射
+### 3.15 核心查询与索引映射
 
 | 场景 | 查询条件 | 依赖索引 |
 |---|---|---|
@@ -849,7 +887,7 @@ users / groups / memberships / targetConfigs / checkinRecords ── n auditLogs
 | 归档成员详情 | archiveMemberSnapshots.archiveSnapshotId + membershipId | archiveMemberSnapshots: archiveSnapshotId + membershipId |
 | 审计追溯 | auditLogs.groupId + createdAt 或 targetType + targetId + createdAt | auditLogs 对应索引 |
 
-### 3.15 数据可见性与统计资格字段策略
+### 3.16 数据可见性与统计资格字段策略
 
 数据模型不在 checkinRecords 中直接保存一个永久的 `isStatEligible` 布尔值。
 
@@ -871,7 +909,7 @@ users / groups / memberships / targetConfigs / checkinRecords ── n auditLogs
 
 后续第 8 章统计与归档设计必须把上述策略落成统一函数或统一查询封装。
 
-### 3.16 数据模型边界与非目标
+### 3.17 数据模型边界与非目标
 
 v1.0 数据模型不设计以下内容：
 
@@ -883,7 +921,7 @@ v1.0 数据模型不设计以下内容：
 - 订阅消息配置和推送记录。
 - 普通用户侧的 dissolved 小组回收站或查看入口。
 
-### 3.17 数据模型一致性检查
+### 3.18 数据模型一致性检查
 
 | 来源规则 | 数据模型响应 |
 |---|---|

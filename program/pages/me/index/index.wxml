@@ -41,6 +41,7 @@
           wx:key="groupId"
           class="group-row"
           data-group-id="{{item.groupId}}"
+          data-group-name="{{item.name}}"
           bindtap="handleSelectGroup"
         >
           <view>

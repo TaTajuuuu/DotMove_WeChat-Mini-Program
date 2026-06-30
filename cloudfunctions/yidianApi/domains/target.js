@@ -1,6 +1,6 @@
 const { createAuthContext, requireCurrentUser } = require("../common/auth");
 const { AppError, ErrorCodes } = require("../common/errors");
-const { calculateMemberStats } = require("../common/stats");
+const { calculateMemberStats, isEligibleRecord } = require("../common/stats");
 
 const SUPPORTED_GOAL_TYPES = [
   "calorieTotal",
@@ -34,8 +34,19 @@ async function findOne(collection, query) {
 }
 
 async function findMany(collection, query) {
-  const result = await collection.where(query).get();
-  return result.data || [];
+  const rows = [];
+  const pageSize = 100;
+  let offset = 0;
+
+  while (true) {
+    const result = await collection.where(query).skip(offset).limit(pageSize).get();
+    const page = result.data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+    offset += page.length;
+  }
+
+  return rows;
 }
 
 async function findGroupById(db, groupId) {
@@ -234,6 +245,30 @@ async function writeAuditLog(db, data) {
   await db.collection("auditLogs").add({ data });
 }
 
+function buildVisibleRecordSummaries(records, membership, targetConfig, group) {
+  return records
+    .filter((record) => isEligibleRecord(record, membership, targetConfig, group))
+    .sort((left, right) => {
+      const dateCompare = String(right.sportDate || "").localeCompare(String(left.sportDate || ""));
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+      return String(right.submitAt || right.createdAt || "").localeCompare(String(left.submitAt || left.createdAt || ""));
+    })
+    .map((record) => ({
+      checkinRecordId: record._id,
+      date: record.sportDate,
+      submitDate: record.submitDate,
+      isMakeup: Boolean(record.isMakeup),
+      status: record.status,
+      calorie: Number((record.metrics && record.metrics.calories) || 0),
+      duration: Number((record.metrics && record.metrics.durationMinutes) || 0),
+      tripleRing: Boolean(record.metrics && record.metrics.ringClosed),
+      photoCount: Array.isArray(record.photos) ? record.photos.length : 0,
+      hasRemark: Boolean(trimString(record.remark))
+    }));
+}
+
 module.exports = {
   async getTargetConfig({ payload = {}, cloud, context }) {
     const authContext = createAuthContext({ cloud, context });
@@ -382,6 +417,14 @@ module.exports = {
     const records = group.status === "active"
       ? await findMany(db.collection("checkinRecords"), { groupId, monthKey: group.monthKey })
       : [];
+    const calendarSportDates = Array.from(new Set(records
+      .filter((record) => isEligibleRecord(record, membership, targetConfig, group))
+      .map((record) => record.sportDate)
+      .filter(Boolean)))
+      .sort();
+
+    const memberStats = calculateMemberStats({ group, membership, targetConfig, records });
+    memberStats.recentRecords = buildVisibleRecordSummaries(records, membership, targetConfig, group);
 
     return {
       group: {
@@ -390,7 +433,11 @@ module.exports = {
         status: group.status,
         monthKey: group.monthKey
       },
-      memberStats: calculateMemberStats({ group, membership, targetConfig, records })
+      memberStats,
+      calendar: {
+        monthKey: group.monthKey,
+        sportDates: calendarSportDates
+      }
     };
   },
 
@@ -416,6 +463,8 @@ module.exports = {
     const records = group.status === "active"
       ? await findMany(db.collection("checkinRecords"), { groupId, monthKey: group.monthKey })
       : [];
+    const memberStats = calculateMemberStats({ group, membership, targetConfig, records });
+    memberStats.recentRecords = buildVisibleRecordSummaries(records, membership, targetConfig, group);
 
     return {
       group: {
@@ -428,7 +477,7 @@ module.exports = {
         membershipId: currentMembership._id,
         role: currentMembership.role
       },
-      memberStats: calculateMemberStats({ group, membership, targetConfig, records })
+      memberStats
     };
   }
 };

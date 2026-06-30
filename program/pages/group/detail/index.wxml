@@ -55,6 +55,14 @@
         </view>
       </view>
 
+      <view wx:if="{{group.canManage && group.inviteCode}}" class="invite-row">
+        <view class="invite-info">
+          <text class="invite-label">小组邀请码</text>
+          <text class="invite-code">{{group.inviteCode}}</text>
+        </view>
+        <button class="copy-invite-btn" bindtap="handleCopyInviteCode">复制</button>
+      </view>
+
       <!-- 设置目标按钮：当前用户未设置目标时显示 -->
       <view wx:if="{{myTargetStatus === 'unset'}}" class="set-target-row">
         <button class="primary-btn" bindtap="handleSetTarget">设置我的运动目标</button>

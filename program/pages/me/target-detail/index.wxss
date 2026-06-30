@@ -78,7 +78,7 @@
   display: block;
   font-size: 56rpx;
   line-height: 1.18;
-  font-weight: 300;
+  font-weight: 900;
   color: #20251f;
   letter-spacing: -1rpx;
 }
@@ -247,6 +247,83 @@
   margin-top: 10rpx;
   color: #687064;
   font-size: 24rpx;
+}
+
+/* ===== 运动日历 ===== */
+.calendar-card {
+  margin-top: 24rpx;
+}
+
+.calendar-month {
+  color: #687064;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10rpx;
+}
+
+.calendar-weekdays {
+  margin-bottom: 10rpx;
+  color: #8a9384;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border: 1rpx solid transparent;
+  border-radius: 12rpx;
+  color: #687064;
+  background: #e5e9df;
+  font-size: 23rpx;
+  font-weight: 800;
+}
+
+.calendar-day.done {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.calendar-day.today {
+  border-color: #f0b441;
+}
+
+.calendar-day.blank {
+  visibility: hidden;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 28rpx;
+  align-items: center;
+  margin-top: 18rpx;
+  color: #687064;
+  font-size: 22rpx;
+}
+
+.legend-item {
+  display: flex;
+  gap: 10rpx;
+  align-items: center;
+}
+
+.legend-dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 6rpx;
+  background: #e5e9df;
+}
+
+.legend-dot.done {
+  background: #2f7d4f;
 }
 
 /* ===== 空提示 ===== */

@@ -15,6 +15,7 @@ Create these collections in the CloudBase console:
 6. `archiveSnapshots`
 7. `archiveMemberSnapshots`
 8. `auditLogs`
+9. `contentReviewTasks`
 
 The field and index source of truth is [database.schema.json](./database.schema.json).
 
@@ -47,6 +48,7 @@ components must not write these collections directly:
 - `archiveSnapshots`
 - `archiveMemberSnapshots`
 - `auditLogs`
+- `contentReviewTasks`
 
 ## Verification
 

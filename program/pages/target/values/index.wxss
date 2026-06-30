@@ -234,7 +234,7 @@
   font-size: 30rpx;
   font-weight: 800;
   box-shadow: 0 16rpx 36rpx rgba(47, 125, 79, .22);
-  line-height: 92rpx;
+  line-height: 1.2;
 }
 .primary-btn[disabled] {
   opacity: .45;

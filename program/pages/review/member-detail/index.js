@@ -3,7 +3,7 @@ const { PageState } = require("../../../config/page-states");
 
 const GOAL_TYPE_MAP = {
   calorieTotal: { name: "月总最低热量", unit: "kcal" },
-  durationTotal: { name: "运动时长", unit: "分钟" },
+  durationTotal: { name: "运动时长", unit: "小时", divisor: 60 },
   exerciseDays: { name: "运动天数", unit: "天" },
   exerciseTimes: { name: "运动次数", unit: "次" },
   runningDistance: { name: "跑步距离", unit: "km" },
@@ -15,11 +15,12 @@ function buildTargetItems(progressSnapshot) {
   const list = (progressSnapshot && progressSnapshot.targetProgressList) || [];
   return list.map((item) => {
     const config = GOAL_TYPE_MAP[item.goalType] || { name: item.goalType, unit: "" };
+    const divisor = config.divisor || 1;
     return {
       goalType: item.goalType,
       goalName: config.name,
-      doneValue: item.doneValue || 0,
-      targetValue: item.targetValue || 0,
+      doneValue: Math.round((Number(item.doneValue || 0) / divisor) * 100) / 100,
+      targetValue: Math.round((Number(item.targetValue || 0) / divisor) * 100) / 100,
       unit: config.unit,
       progress: item.progress || 0,
       achievedDate: item.achievedAt || "",

@@ -20,6 +20,7 @@ page {
 
   /* 基础样式 */
   min-height: 100%;
+  overflow-x: hidden;
   color: var(--ink);
   background: var(--page);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -34,15 +35,104 @@ textarea {
   box-sizing: border-box;
 }
 
+view,
+text,
+button,
+input,
+textarea {
+  min-width: 0;
+}
+
+text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
   font: inherit;
   margin: 0;
   padding: 0;
   background: transparent;
   border: none;
-  line-height: inherit;
+  line-height: 1.2;
+  text-align: center;
 }
 
 button::after {
   border: none;
+}
+
+.privacy-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  background: rgba(25, 30, 25, .58);
+}
+
+.privacy-dialog {
+  width: 100%;
+  max-width: 640rpx;
+  padding: 40rpx 32rpx 32rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  box-shadow: 0 24rpx 64rpx rgba(20, 28, 20, .2);
+}
+
+.privacy-title {
+  display: block;
+  color: #20251f;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.privacy-copy {
+  display: block;
+  margin-top: 24rpx;
+  color: #687064;
+  font-size: 27rpx;
+  line-height: 1.65;
+}
+
+.privacy-contract-link {
+  display: block;
+  margin-top: 20rpx;
+  color: #23613e;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.privacy-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+.privacy-cancel-btn,
+.privacy-agree-btn {
+  min-height: 88rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.privacy-cancel-btn {
+  color: #687064;
+  background: #f0f2ed;
+}
+
+.privacy-agree-btn {
+  color: #fff;
+  background: #2f7d4f;
 }

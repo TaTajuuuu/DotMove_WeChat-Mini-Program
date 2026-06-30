@@ -20,6 +20,10 @@ function getCheckinRecords(payload = {}, options = {}) {
   return callYidianApi("checkin", "getCheckinRecords", payload, options);
 }
 
+function getCheckinRecordDetail(payload = {}, options = {}) {
+  return callYidianApi("checkin", "getCheckinRecordDetail", payload, options);
+}
+
 function getMyStats(payload = {}, options = {}) {
   return callYidianApi("checkin", "getMyStats", payload, options);
 }
@@ -30,5 +34,6 @@ module.exports = {
   createMakeup,
   updateCheckinRecord,
   getCheckinRecords,
+  getCheckinRecordDetail,
   getMyStats
 };

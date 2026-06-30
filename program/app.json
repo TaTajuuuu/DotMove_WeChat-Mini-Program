@@ -13,6 +13,7 @@
     "pages/member/target-detail/index",
     "pages/checkin/makeup/index",
     "pages/checkin/records/index",
+    "pages/checkin/record-detail/index",
     "pages/me/target-detail/index",
     "pages/review/detail/index",
     "pages/review/member-detail/index"
@@ -58,5 +59,6 @@
     ]
   },
   "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true,
   "style": "v2"
 }

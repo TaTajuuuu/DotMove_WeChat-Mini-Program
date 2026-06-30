@@ -1,1 +1,8 @@
-{"permissions": {"openapi": []}}
+{
+  "permissions": {
+    "openapi": [
+      "security.msgSecCheck",
+      "security.mediaCheckAsync"
+    ]
+  }
+}

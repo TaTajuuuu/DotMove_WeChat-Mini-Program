@@ -19,9 +19,10 @@ Page({
   },
 
   onLoad(options = {}) {
-    if (options.inviteCode) {
-      this.setData({ inviteCode: options.inviteCode });
-      this.loadPreview(options.inviteCode);
+    const inviteCode = options.inviteCode || options.code || "";
+    if (inviteCode) {
+      this.setData({ inviteCode });
+      this.loadPreview(inviteCode);
     }
   },
 
@@ -60,7 +61,20 @@ Page({
     this.loadPreview();
   },
 
+  handleBack() {
+    wx.navigateBack({ fail: () => wx.switchTab({ url: routes.home }) });
+  },
+
+  handleRetry() {
+    this.loadPreview();
+  },
+
   async handleJoin() {
+    if (this.data.preview && this.data.preview.alreadyMember) {
+      wx.redirectTo({ url: `${routes.groupDetail}?groupId=${this.data.preview.groupId}` });
+      return;
+    }
+
     const nickname = this.data.nickname.trim();
     if (!nickname || nickname.length > 12) {
       this.setData({ errorMessage: "昵称需为 1 至 12 个字符。" });

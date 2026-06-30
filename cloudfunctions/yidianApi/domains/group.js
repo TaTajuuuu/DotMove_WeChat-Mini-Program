@@ -41,18 +41,8 @@ function normalizeNickname(value) {
   return nickname;
 }
 
-function resolveCreatorNickname(payload, user) {
-  const requestedNickname = trimString(payload.nickname);
-  if (requestedNickname) {
-    return normalizeNickname(requestedNickname);
-  }
-
-  const profileNickname = trimString(user.profileNickname);
-  if (profileNickname && NICKNAME_RE.test(profileNickname)) {
-    return profileNickname;
-  }
-
-  return "creator";
+function resolveCreatorNickname(payload) {
+  return normalizeNickname(payload.nickname);
 }
 
 function createInviteCode() {
@@ -141,6 +131,18 @@ async function findActionAudit(db, actionType, actorUserId, requestId) {
 
 async function writeAuditLog(db, data) {
   await db.collection("auditLogs").add({ data });
+}
+
+async function runCreateStage(stage, operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    const details = error && error.details && typeof error.details === "object"
+      ? error.details
+      : {};
+    error.details = { ...details, stage };
+    throw error;
+  }
 }
 
 async function createUnsetTargetConfig(db, data) {
@@ -376,6 +378,7 @@ function toCreateGroupResult({ groupId, membershipId, targetConfigId, group }) {
     groupId,
     membershipId,
     targetConfigId,
+    name: group.name,
     inviteCode: group.inviteCode,
     status: group.status,
     monthKey: group.monthKey,
@@ -459,8 +462,11 @@ module.exports = {
     const requestId = assertWriteRequestId(event);
     const authContext = createAuthContext({ cloud, context });
     const db = cloud.database();
-    const currentUser = await requireCurrentUser(db, authContext);
-    const repeatedAudit = await findCreateGroupAudit(db, currentUser.userId, requestId);
+    const currentUser = await runCreateStage("requireCurrentUser", () => requireCurrentUser(db, authContext));
+    const repeatedAudit = await runCreateStage(
+      "findCreateGroupAudit",
+      () => findCreateGroupAudit(db, currentUser.userId, requestId)
+    );
 
     if (repeatedAudit && repeatedAudit.resultData) {
       return repeatedAudit.resultData;
@@ -483,10 +489,20 @@ module.exports = {
     const status = groupType === "nextMonth"
       ? "upcoming"
       : resolveGroupStatusByLifecycle(lifecycle.lifecycleStartAt, lifecycle.lifecycleEndAt, now);
-    const inviteCode = await createUniqueInviteCode(db);
-    const nickname = resolveCreatorNickname(payload, currentUser);
+    const inviteCode = await runCreateStage("createUniqueInviteCode", () => createUniqueInviteCode(db));
+    const nickname = resolveCreatorNickname(payload);
 
-    const groupAddResult = await db.collection("groups").add({
+    const group = {
+      name,
+      inviteCode,
+      status,
+      monthKey: lifecycle.monthKey,
+      lifecycleStartAt: lifecycle.lifecycleStartAt,
+      lifecycleEndAt: lifecycle.lifecycleEndAt,
+      activeMemberCount: 1,
+      maxMembers: MAX_MEMBERS
+    };
+    const groupAddResult = await runCreateStage("createGroupRecord", () => db.collection("groups").add({
       data: {
         name,
         monthKey: lifecycle.monthKey,
@@ -505,10 +521,12 @@ module.exports = {
         createdBy: currentUser.userId,
         updatedBy: currentUser.userId
       }
-    });
+    }));
     const groupId = groupAddResult._id;
 
-    const membershipAddResult = await db.collection("memberships").add({
+    const membershipAddResult = await runCreateStage(
+      "createCreatorMembership",
+      () => db.collection("memberships").add({
       data: {
         groupId,
         userId: currentUser.userId,
@@ -530,34 +548,32 @@ module.exports = {
         createdBy: currentUser.userId,
         updatedBy: currentUser.userId
       }
-    });
+      })
+    );
     const membershipId = membershipAddResult._id;
 
-    await db.collection("groups").doc(groupId).update({
-      data: {
-        creatorMembershipId: membershipId,
-        updatedAt: now,
-        updatedBy: currentUser.userId
-      }
-    });
+    await runCreateStage(
+      "bindCreatorMembership",
+      () => db.collection("groups").doc(groupId).update({
+        data: {
+          creatorMembershipId: membershipId,
+          updatedAt: now,
+          updatedBy: currentUser.userId
+        }
+      })
+    );
 
-    const targetConfigId = await createUnsetTargetConfig(db, {
-      groupId,
-      membershipId,
-      userId: currentUser.userId,
-      monthKey: lifecycle.monthKey,
-      now
-    });
+    const targetConfigId = await runCreateStage(
+      "createTargetConfig",
+      () => createUnsetTargetConfig(db, {
+        groupId,
+        membershipId,
+        userId: currentUser.userId,
+        monthKey: lifecycle.monthKey,
+        now
+      })
+    );
 
-    const group = {
-      inviteCode,
-      status,
-      monthKey: lifecycle.monthKey,
-      lifecycleStartAt: lifecycle.lifecycleStartAt,
-      lifecycleEndAt: lifecycle.lifecycleEndAt,
-      activeMemberCount: 1,
-      maxMembers: MAX_MEMBERS
-    };
     const resultData = toCreateGroupResult({
       groupId,
       membershipId,
@@ -565,19 +581,22 @@ module.exports = {
       group
     });
 
-    await writeAuditLog(db, {
-      actionType: "GROUP_CREATE",
-      actorUserId: currentUser.userId,
-      actorMembershipId: membershipId,
-      targetType: "group",
-      targetId: groupId,
-      groupId,
-      requestId,
-      traceId: traceId || "",
-      result: "success",
-      resultData,
-      createdAt: now
-    });
+    await runCreateStage(
+      "writeCreateAudit",
+      () => writeAuditLog(db, {
+        actionType: "GROUP_CREATE",
+        actorUserId: currentUser.userId,
+        actorMembershipId: membershipId,
+        targetType: "group",
+        targetId: groupId,
+        groupId,
+        requestId,
+        traceId: traceId || "",
+        result: "success",
+        resultData,
+        createdAt: now
+      })
+    );
 
     return resultData;
   },
@@ -809,6 +828,7 @@ module.exports = {
         maxMembers: group.maxMembers || MAX_MEMBERS,
         currentUserRole: currentMembership.role,
         canManage: currentMembership.role === "creator",
+        inviteCode: currentMembership.role === "creator" ? group.inviteCode : "",
         statsSummary: stats.groupSummary
       },
       currentMembership: {

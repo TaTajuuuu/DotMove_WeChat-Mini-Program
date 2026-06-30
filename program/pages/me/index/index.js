@@ -2,12 +2,18 @@ const groupService = require("../../../services/group");
 const { routes } = require("../../../config/routes");
 const { PageState } = require("../../../config/page-states");
 
+function getCurrentMonthLabel() {
+  const now = new Date();
+  return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 Page({
   data: {
     pageState: PageState.LOADING,
     errorMessage: "",
     groups: [],
-    selectedGroupId: ""
+    selectedGroupId: "",
+    currentMonthLabel: getCurrentMonthLabel()
   },
 
   onShow() {
@@ -34,7 +40,18 @@ Page({
   },
 
   handleSelectGroup(event) {
-    this.setData({ selectedGroupId: event.currentTarget.dataset.groupId });
+    const groupId = event.currentTarget.dataset.groupId || "";
+    const groupName = event.currentTarget.dataset.groupName || "";
+    if (!groupId) return;
+
+    this.setData({ selectedGroupId: groupId });
+    wx.navigateTo({
+      url: `${routes.myTargetDetail}?groupId=${groupId}&groupName=${encodeURIComponent(groupName)}`,
+      fail(error) {
+        console.error("[me] navigate to target detail failed", error);
+        wx.showToast({ title: "目标详情打开失败", icon: "none" });
+      }
+    });
   },
 
   handleOpenDetail() {

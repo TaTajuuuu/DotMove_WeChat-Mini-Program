@@ -163,7 +163,7 @@
 /* 周期选择 */
 .period-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20rpx;
 }
 
@@ -349,22 +349,34 @@
   letter-spacing: 4rpx;
 }
 
-.secondary-actions {
-  display: flex;
+.invite-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20rpx;
   margin-top: 24rpx;
 }
 
-.ghost-btn {
-  flex: 1;
+.invite-action-btn,
+.target-action-btn {
   min-height: 80rpx;
   min-width: 0;
   border: 1rpx solid rgba(47, 125, 79, .22);
   border-radius: 16rpx;
-  color: #23613e;
-  background: #fff;
   font: inherit;
   font-size: 26rpx;
   font-weight: 800;
   box-sizing: border-box;
+}
+
+.invite-action-btn {
+  width: 100%;
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.target-action-btn {
+  width: 100%;
+  margin-top: 20rpx;
+  color: #23613e;
+  background: #fff;
 }

@@ -89,11 +89,24 @@ Page({
     wx.navigateTo({ url: `${routes.groupManage}?groupId=${this.data.groupId}` });
   },
 
+  handleCopyInviteCode() {
+    const inviteCode = (this.data.group && this.data.group.inviteCode) || "";
+    if (!inviteCode) return;
+    wx.setClipboardData({
+      data: inviteCode,
+      success: () => wx.showToast({ title: "邀请码已复制", icon: "success" })
+    });
+  },
+
   handleOpenMember(event) {
     const membershipId = event.currentTarget.dataset.membershipId;
     if (membershipId) {
       wx.navigateTo({ url: `${routes.memberTargetDetail}?groupId=${this.data.groupId}&membershipId=${membershipId}` });
     }
+  },
+
+  handleBack() {
+    wx.navigateBack({ fail: () => wx.switchTab({ url: routes.home }) });
   },
 
   handleRetry() {

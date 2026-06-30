@@ -45,7 +45,8 @@ node '.\cloudfunctions\test-stats.js'
 1. 在微信开发者工具文件树中右键 `cloudfunctions/yidianApi`。
 2. 选择“上传并部署：云端安装依赖”。
 3. 部署完成后，在云开发控制台确认 `yidianApi` 云函数存在。
-4. 如需定时归档，在云函数触发器中配置 `monthlyGroupStatusTransition`，建议每月 1 日凌晨执行。
+4. 进入 `yidianApi` 的函数配置，将云函数超时时间设置为 30 秒；不得使用默认 3 秒配置。
+5. 如需定时归档，在云函数触发器中配置 `monthlyGroupStatusTransition`，建议每月 1 日凌晨执行。
 
 ## 5. 主流程手动测试
 

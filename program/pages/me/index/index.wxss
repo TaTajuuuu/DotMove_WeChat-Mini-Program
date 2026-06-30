@@ -153,7 +153,7 @@
 
 .group-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16rpx;
   align-items: center;
   padding: 24rpx;
@@ -229,7 +229,7 @@
 /* 日历 */
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 12rpx;
 }
 

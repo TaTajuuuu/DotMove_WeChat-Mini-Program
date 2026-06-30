@@ -29,6 +29,7 @@ Page({
   data: {
     groupType: "currentMonth",
     name: "",
+    nickname: "",
     submitting: false,
     errorMessage: "",
     createdGroup: null,
@@ -64,10 +65,22 @@ Page({
     });
   },
 
+  handleNicknameInput(event) {
+    this.setData({
+      nickname: event.detail.value || "",
+      errorMessage: ""
+    });
+  },
+
   async handleCreate() {
     const name = this.data.name.trim();
+    const nickname = this.data.nickname.trim();
     if (!name || name.length > 20) {
       this.setData({ errorMessage: "小组名称需为 1 至 20 个字符。" });
+      return;
+    }
+    if (!nickname || nickname.length > 12) {
+      this.setData({ errorMessage: "昵称需为 1 至 12 个字符。" });
       return;
     }
 
@@ -77,6 +90,7 @@ Page({
       const result = await groupService.createGroup({
         groupType: this.data.groupType,
         name,
+        nickname,
         requestId
       }, { loadingText: "创建中" });
 
@@ -106,43 +120,37 @@ Page({
     }
   },
 
-  // 微信群分享
-  handleShareToChat() {
-    const group = this.data.createdGroup;
-    if (!group) return;
-
-    // 如果用户已在成功页点击了分享，触发转发
-    wx.showModal({
-      title: '分享到微信群',
-      content: `即将分享「${group.name}」的邀请码：${group.inviteCode}`,
-      confirmText: '去分享',
-      success: (res) => {
-        if (res.confirm) {
-          // 触发系统分享（需要配合 onShareAppMessage）
-          // 小程序会自动调起分享面板
-        }
-      }
-    });
-  },
-
   // 复制邀请码
   handleCopyCode() {
-    const code = this.data.createdGroup && this.data.createdGroup.inviteCode;
-    if (code) {
-      wx.setClipboardData({
-        data: code,
-        success: () => {
-          wx.showToast({ title: '已复制邀请码', icon: 'success' });
-        }
-      });
+    const code = String(
+      (this.data.createdGroup && this.data.createdGroup.inviteCode) || ""
+    ).trim();
+
+    if (!code) {
+      wx.showToast({ title: "邀请码为空，请刷新后重试", icon: "none" });
+      return;
     }
+
+    wx.setClipboardData({
+      data: code,
+      success: () => {
+        wx.showToast({ title: "邀请码已复制", icon: "success" });
+      },
+      fail: (error) => {
+        console.error("[group/create] copy invite code failed", {
+          inviteCode: code,
+          errMsg: error && error.errMsg ? error.errMsg : ""
+        });
+        wx.showToast({ title: "复制失败，请稍后重试", icon: "none" });
+      }
+    });
   },
 
   onShareAppMessage() {
     const group = this.data.createdGroup;
     return {
       title: group ? `邀请你加入「${group.name}」` : '加入我的运动小组',
-      path: `/pages/group/join/index?code=${group ? group.inviteCode : ''}`,
+      path: `/pages/group/join/index?inviteCode=${group ? group.inviteCode : ''}`,
       imageUrl: ''
     };
   }
