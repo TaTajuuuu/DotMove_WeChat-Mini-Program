@@ -27,6 +27,7 @@ miniprogram_npm/
 # Build, test, and coverage output
 dist/
 build/
+output/
 coverage/
 .nyc_output/
 

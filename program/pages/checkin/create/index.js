@@ -30,8 +30,6 @@ Page({
       var groupName = decodeURIComponent(options.groupName || "");
       this.setData({ groupId: groupId, groupName: groupName, loading: true });
       this.loadCheckinContext(groupId, groupName);
-    } else {
-      this.loadGroups();
     }
   },
 
@@ -71,6 +69,11 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    // Tab 页面会被微信缓存。每次回到小组选择状态都重新拉取，
+    // 避免创建、加入或成员变化后继续展示旧列表。
+    if (!this.data.groupId) {
+      this.loadGroups();
+    }
   },
 
   initToday: function() {
@@ -88,12 +91,15 @@ Page({
 
     groupService.getHomeEntry().then(function(res) {
       var raw = res.data && res.data.currentGroups || [];
-      var groups = raw.map(function(g) {
+      // 只有进行中的小组允许当天打卡；upcoming 小组应等生命周期开始后再出现。
+      var groups = raw.filter(function(g) {
+        return g.status === "active";
+      }).map(function(g) {
         return {
           groupId: g.groupId || g._id,
           groupName: g.groupName || g.name || "未命名",
           status: g.status || "",
-          statusText: g.status === "active" ? "进行中" : g.status === "upcoming" ? "即将开始" : "活跃",
+          statusText: "进行中",
           progress: g.progressPercent || g.progress || 0,
           memberCount: g.memberCount || g.activeMemberCount || 1
         };
