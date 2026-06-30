@@ -2,6 +2,32 @@ const groupService = require("../../../services/group");
 const { routes } = require("../../../config/routes");
 const { PageState } = require("../../../config/page-states");
 
+function normalizeCloudDate(value) {
+  if (value && typeof value === "object" && value.$date !== undefined) {
+    return value.$date;
+  }
+  return value;
+}
+
+function formatLifecycleDate(value) {
+  const normalized = normalizeCloudDate(value);
+  if (!normalized) return "";
+  const date = new Date(normalized);
+  if (!Number.isFinite(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizePreview(data = {}) {
+  return {
+    ...data,
+    startDate: formatLifecycleDate(data.lifecycleStartAt),
+    endDate: formatLifecycleDate(data.lifecycleEndAt)
+  };
+}
+
 Page({
   data: {
     pageState: PageState.READY,
@@ -45,7 +71,7 @@ Page({
       const result = await groupService.getJoinPreview({ inviteCode });
       this.setData({
         pageState: PageState.READY,
-        preview: result.data,
+        preview: normalizePreview(result.data),
         inviteCode
       });
     } catch (error) {

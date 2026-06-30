@@ -90,7 +90,14 @@ async function findMembership(db, groupId, userId) {
 }
 
 async function findTargetConfig(db, groupId, membershipId, monthKey) {
-  return findOne(db.collection("targetConfigs"), { groupId, membershipId, monthKey });
+  const result = await db.collection("targetConfigs")
+    .where({ membershipId })
+    .limit(20)
+    .get();
+  const rows = result.data || [];
+  return rows.find((item) => (
+    item.groupId === groupId && item.monthKey === monthKey
+  )) || null;
 }
 
 async function findGroupByInviteCode(db, inviteCode) {
